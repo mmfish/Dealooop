@@ -32,7 +32,8 @@
 | `backend/negotiation.ts` `backend/negotiation-spec.ts` | **复用为私下议价通道**（SPEC §9） |
 | `backend/shortlist*.ts` `backend/media.ts` 及对应页面 | 删除 |
 | `db/schema.ts` 的 posts / offers / deals | 替换为 campaigns / claims / conversions / ledger |
-| Cloudflare D1/R2 那条路径（`worker/` `vite.config.ts` 等） | 只保留 AWS/SQLite 一条，其余删除 |
+| Sites/Cloudflare 部署脚手架（`worker/` `vite.config.ts` `scripts/` 里的 install/sites 系列、`lib/connector*`） | **已删除**（commit 见 git log） |
+| D1 形状的数据库接口（`runtime/sqlite.ts` 模拟、`cloudflare-env.d.ts` 的 `Env` 类型、`@cloudflare/workers-types`）与 Miniflare | **保留**：后端全部按 D1 的 `prepare/bind/batch` 写，5 个测试文件（api、api-key、auth、negotiation、security）用 Miniflare D1 做测试库。删掉它们等于重写测试，不属于清理 |
 | `public/images/*`（二手商品图） | 删除 |
 
 **`backend/oauth.ts` 里写死了 Muse 的回调 `https://agent.meta.ai/api/hatch/oauth/callback`，
