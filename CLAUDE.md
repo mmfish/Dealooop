@@ -36,9 +36,14 @@
 | D1 形状的数据库接口（`runtime/sqlite.ts` 模拟、`cloudflare-env.d.ts` 的 `Env` 类型、`@cloudflare/workers-types`）与 Miniflare | **保留**：后端全部按 D1 的 `prepare/bind/batch` 写，5 个测试文件（api、api-key、auth、negotiation、security）用 Miniflare D1 做测试库。删掉它们等于重写测试，不属于清理 |
 | `public/images/*`（二手商品图） | 删除 |
 
-**`backend/oauth.ts` 里写死了 Muse 的回调 `https://agent.meta.ai/api/hatch/oauth/callback`，
-而且只接受这一个 redirect_uri。** 改为 Claude 接入时，`tests/mcp.test.ts` 和
-`tests/oauth-refresh.test.ts` 会一起要改。
+**接入 Claude 的硬性前提已核实，见 [docs/SPEC.md §15](docs/SPEC.md)。** 两件事不满足：
+`backend/oauth.ts` 只接受写死的 Muse 回调（需放行 `https://claude.ai/api/mcp/auth_callback`，
+并建议同时放行 `https://claude.com/api/mcp/auth_callback`；同时要改 `consentCsp` 的 `form-action`
+和 `tests/mcp.test.ts`、`tests/oauth-refresh.test.ts`）；服务必须有公网 HTTPS 地址，
+且 `DEALOOP_ORIGIN` 要与之完全一致。
+
+demo 分两幕：第一幕是无头 Claude agent 的模拟器（规模），第二幕是 Claude.ai / Desktop 连接器里
+真人在环的议价（沿用 Muse demo 的形式）。两幕的 agent 都调用同一套 MCP 工具。
 
 ## 目录
 

@@ -126,11 +126,20 @@ pending 转化按**当前价**占用预算额度，和 verified 一样参与 §6
 
 这一页是 pitch 的核心证据。**必须标明数据为合成数据**，不得表述为已验证的真实效果。
 
-## 11. demo 种子数据
+## 11. demo：两幕
 
-- 种子 campaign 就是**推广 Dealoop 自己**（self-demonstrating，顺便回答冷启动问题）
+**第一幕 · 规模（模拟器）。** 无头 Claude agent 驱动约 30 个合成 creator，时间轴压缩，
+几分钟跑完 14 天。大盘展示用户数、平均 CAC、预算使用率，以及与"固定 $10"的对比（§10）。
+论点：交易成本趋近于零，长尾小额交易才成立。
+
+**第二幕 · 真人在环的议价（Claude 窗口）。** 沿用 Muse 版 demo 的形式：几个 Claude
+窗口（founder、头部 creator），主人用自然语言授权，agent 在 mandate 内自主，**超出
+mandate 就回头问主人**（例如"对方要 $7，高于你的最低价，要接受吗？"），确认后落成 `Deal`（§9）。
+这一幕通过 Claude.ai / Claude Desktop 的自定义连接器接入平台的 MCP，接入要求见 §15。
+
+- 种子 campaign 就是**推广 Dealoop 自己**（顺便回答冷启动问题）
 - 约 30 个 creator agent，其中 1 个满足议价门槛
-- 时间轴压缩，几分钟跑完 14 天
+- 第二幕的 founder 与 creator 是两个独立的 Claude 会话，各自连接各自的账号
 
 ## 12. 前置条件（pitch 里要明说）
 
@@ -154,4 +163,24 @@ pending 转化按**当前价**占用预算额度，和 verified 一样参与 §6
 ## 14. 仍未决
 
 - 黑客松的提交要求与评审标准
-- Muse 旧代码的位置与可运行状态（决定议价通道能复用多少）
+- 第二幕的公网地址方案（隧道还是部署），决定 `DEALOOP_ORIGIN` 的取值
+
+## 15. Claude 接入要求（第二幕）
+
+以下来自 Claude 官方文档 [Authentication for connectors](https://claude.com/docs/connectors/building/authentication)，
+查证日期 2026-11-11：
+
+| 要求 | 现状（继承自 Muse） |
+|---|---|
+| 回调 `https://claude.ai/api/mcp/auth_callback`（web、Desktop、mobile 共用）；文档提示将来可能改为 `https://claude.com/api/mcp/auth_callback`，两个都放行 | **不满足**：`backend/oauth.ts` 只接受写死的 Muse 回调，注册时 `redirect_uris` 必须恰好等于它 |
+| 支持动态客户端注册（DCR）或 CIMD | 有 DCR（`/oauth/register`），但绑定了上一条 |
+| PKCE S256，token 端点接受 `application/x-www-form-urlencoded` | 有 S256；测试里 `/oauth/token` 用 form 编码调用，满足 |
+| 授权请求带 `resource`，且必须与用户填入的 MCP 地址完全一致（含路径） | 有资源绑定 |
+| 未授权请求返回 `401` 且带 `WWW-Authenticate: Bearer resource_metadata=...` | 满足（已在运行中的服务上验证）：未授权的 `/mcp` 返回 `401` 与 `WWW-Authenticate: Bearer resource_metadata=...`，元数据里 `resource` 即 `/mcp` 地址 |
+| 刷新令牌轮换，失效时返回 `invalid_grant` | 有轮换与 `invalid_grant` |
+| 发现、注册、token 端点 10 秒内响应，刷新 30 秒 | 本地 SQLite，预计满足 |
+| 服务必须是**公网 HTTPS**，不能重定向到别的主机或解析到内网地址 | **不满足**：目前只在 localhost 运行 |
+| 若做 IP 白名单，Anthropic 出口网段为 `160.79.104.0/21` | 暂不需要 |
+| Claude Code 用回环回调（`http://localhost:<port>/callback`），端口任意 | 非第二幕必需，顺手兼容即可 |
+
+`DEALOOP_ORIGIN` 必须等于用户在 Claude 里填的那个公网地址，否则 `resource` 校验会失败。
