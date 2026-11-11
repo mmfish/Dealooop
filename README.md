@@ -53,6 +53,18 @@ npm run build:aws && npm run check
 
 导入时的基线：43 个测试全部通过，`build:aws` 构建成功，服务可启动。
 
+## 模拟器
+
+```sh
+npm run sim
+```
+
+```sh
+npm run sim -- --runs 200 --market baseline --tick 6
+```
+
+对比动态价与一组固定价在 baseline、thin、thick 三种合成市场里的表现。结果解读见 [docs/SPEC.md §10](docs/SPEC.md)。
+
 ## 数据说明
 
 demo 与 pitch 中出现的 creator、转化和对比实验数据**均为合成数据**，不是已验证的真实投放效果。

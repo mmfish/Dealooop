@@ -100,6 +100,11 @@ export interface CampaignInput {
   /** Required. A brief without a deadline must be sent back to the founder, never guessed (SPEC §4 step 2). */
   deadline?: number | null;
   now: number;
+  /**
+   * Optional starting price. Defaults to 30% of max CAC (SPEC §6). Used by the
+   * simulator's fixed-price baselines; must be between 1 cent and max CAC.
+   */
+  startPriceCents?: Cents;
 }
 
 export function createCampaign(input: CampaignInput): Book {
@@ -112,7 +117,10 @@ export function createCampaign(input: CampaignInput): Book {
   if (!Number.isSafeInteger(input.deadline) || input.deadline <= input.now) {
     throw new CoreError('INVALID_DEADLINE', 'The deadline must be in the future.');
   }
-  const startPriceCents = Math.max(1, Math.round(0.3 * input.maxCacCents));
+  if (input.startPriceCents !== undefined && !(isPositiveInt(input.startPriceCents) && input.startPriceCents <= input.maxCacCents)) {
+    throw new CoreError('INVALID_START_PRICE', 'startPriceCents must be a positive integer no greater than max CAC.');
+  }
+  const startPriceCents = input.startPriceCents ?? Math.max(1, Math.round(0.3 * input.maxCacCents));
   const stepCents = Math.max(1, Math.round(0.1 * input.maxCacCents));
   return {
     campaign: {
