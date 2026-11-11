@@ -12,7 +12,8 @@
     "check": "tsc --noEmit",
     "build:aws": "DEALOOP_BUILD_TARGET=aws next build --webpack",
     "start:aws": "next start -H 127.0.0.1",
-    "test:aws": "node --experimental-transform-types --test tests/aws.test.ts"
+    "test:aws": "node --experimental-transform-types --test tests/aws.test.ts",
+    "dev:aws": "DEALOOP_BUILD_TARGET=aws DEALOOP_RUNTIME=aws next dev --webpack -H 127.0.0.1"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1161.0",

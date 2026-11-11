@@ -20,15 +20,24 @@ founder 用一句话说出推广目标，平台把它变成一个公开的 campa
 
 ## 本地运行
 
-需要 Node 24（仓库声明 `>=22.13`，AWS 运行时为 24）。
+需要 Node 24（仓库声明 `>=22.13`，AWS 运行时为 24）。本地统一用 **3200 端口**。
+
+开发模式（改代码自动重载）：
 
 ```sh
 nvm use
 npm ci
-npm run build:aws
-DEALOOP_BUILD_TARGET=aws DEALOOP_RUNTIME=aws DEALOOP_ORIGIN=http://localhost:3000 npm run start:aws -- --port 3000
+DEALOOP_ORIGIN=http://localhost:3200 npm run dev:aws -- --port 3200
 ```
 
+接近生产的方式（先构建再启动）：
+
+```sh
+npm run build:aws
+DEALOOP_BUILD_TARGET=aws DEALOOP_RUNTIME=aws DEALOOP_ORIGIN=http://localhost:3200 npm run start:aws -- --port 3200
+```
+
+`DEALOOP_ORIGIN` 必须与访问地址一致，OAuth 与 MCP 的 `resource` 校验依赖它。
 SQLite 自动建在 `data/dealoop.sqlite`，migration 首次使用时自动执行。公开浏览不需要登录；
 人类登录需要替换 `config/firebase.json` 为你们自己的 Firebase 项目配置。
 
