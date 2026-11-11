@@ -93,6 +93,21 @@ API and costs money**: the second command is a small trial run. Credentials come
 environment (`ANTHROPIC_API_KEY`). Models default to `claude-opus-5-5`; override with
 `DEALOOP_FOUNDER_MODEL` and `DEALOOP_CREATOR_MODEL`. See [docs/SPEC.md §10.1](docs/SPEC.md).
 
+## From one sentence to a campaign
+
+```sh
+npm run brief -- "Help my app get 100 new sign-ups, the more the better. Budget \$1000, CAC no more than \$10."
+```
+
+```sh
+npm run brief -- "Help my app get 100 new sign-ups, the more the better. Budget \$1000, CAC no more than \$10." --answer "Two weeks from today." --simulate
+```
+
+The founder agent reads the brief (one Claude call, under a cent). If the deadline, budget or
+maximum CAC is missing, it asks instead of guessing; reply with `--answer`. A complete brief is
+printed as the campaign it would post, and `--simulate` runs it through the heuristic simulator
+for free. Works in other languages too. See [docs/SPEC.md §4.1](docs/SPEC.md).
+
 ## Negotiation channel
 
 ```sh

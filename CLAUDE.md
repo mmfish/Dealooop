@@ -66,7 +66,7 @@ app/           Next.js pages and routes (including /mcp, /api/v1, and /sim, the 
 backend/       server: authentication, OAuth, MCP, REST, negotiation, events
 core/          deterministic core: ledger, pricing rules, deals, settlement      [new]
 sim/           simulator and strategy comparison                                  [new]
-agents/        Claude layer: supply estimation, creator join decisions, negotiation (built); brief parsing to come
+agents/        Claude layer: brief parsing, supply estimation, creator join decisions, negotiation
 db/ drizzle/   schema, migrations, repository
 tests/         invariant tests and scenario tests
 runtime/       runtime adapters (AWS/SQLite only)
@@ -78,7 +78,7 @@ runtime/       runtime adapters (AWS/SQLite only)
 2. ~~`db/` campaign schema and migration~~ — done (migration 0008)
 3. ~~`core/` + `tests/` for the A and B invariants~~ — done
 4. ~~`sim/` + comparison (S2, S3)~~ — done
-5. `agents/`: connect Claude — supply estimation and creator decisions done (`npm run sim:claude`); brief parsing still to do
+5. ~~`agents/`: connect Claude~~ — done: brief parsing (`npm run brief`), supply estimation and creator decisions (`npm run sim:claude`)
 6. ~~Negotiation channel (C series, S8–S10)~~ — done (`core/negotiation.ts`, `npm run negotiate`); persistence and MCP tools come with Act 2
 7. UI, seed data, and removal of the remaining secondhand-marketplace code — Act 1 dashboard done (`/sim`)
 
@@ -107,7 +107,7 @@ runtime/       runtime adapters (AWS/SQLite only)
 | 11/11 | Final spec, project skeleton, stack | | Done |
 | 11/12–11/13 | `core` + A/B invariant tests | **11/13: tests green, or negotiation drops to P1** | Done early (11/11) |
 | 11/14 | `sim` + comparison, producing the S2/S3 numbers | | Done early (11/11) |
-| 11/15 | `agents` connected to Claude | **11/15: agents working, or cut natural-language policy** | Simulator agents done early (11/11); brief parsing pending |
+| 11/15 | `agents` connected to Claude | **11/15: agents working, or cut natural-language policy** | Done early (11/11) |
 | 11/16 | Negotiation channel (unless dropped) | | Done early (11/11) |
 | 11/17 | Demo UI + seed data, **feature freeze** | | Act 1 dashboard done early (11/11) |
 | 11/18 | Polish, record the demo video, README | | |

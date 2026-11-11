@@ -39,6 +39,25 @@ Agents make judgments; they do not keep the books. See §7.
 7. The price is recalculated every tick (6 hours). It only goes up, and a raise **applies retroactively to every verified conversion**.
 8. The campaign closes at the deadline or when the budget runs out, and settles at the final price.
 
+### 4.1 Brief parsing (built)
+
+`agents/brief-parser.ts`, run with `npm run brief`. Claude extracts the fields, and for each value
+returns the exact words it read it from. Code then decides what counts:
+
+- A value whose quoted words do not appear in the founder's text, or whose number does not match
+  them, is discarded and treated as missing.
+- **The deadline is never assumed.** No stated date or duration means a question. A deadline in
+  the past or more than a year away is also a question.
+- The budget and maximum CAC must be stated; a maximum CAC is never computed from budget ÷ goal.
+- A missing goal is filled as budget ÷ maximum CAC and reported as an assumption.
+- "Exactly N, no more" is noted: the MVP treats every goal as a minimum (§13).
+- The core still refuses a campaign without a deadline on its own (`MISSING_DEADLINE`).
+
+Live checks, 2026-11-11: the S1 sentence without a deadline got the question; with "Two weeks
+from today." it produced the expected campaign (deadline 2026-11-25, start price $3); the same
+brief in Chinese produced the same campaign; "200 readers … with $500 by the end of the month"
+got asked for a maximum CAC rather than assuming $2.50. One call each, under a cent.
+
 ## 5. Data model
 
 Implemented in `db/schema.ts` (migration `drizzle/0008_campaigns.sql`):

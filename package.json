@@ -16,7 +16,8 @@
     "dev:aws": "DEALOOP_BUILD_TARGET=aws DEALOOP_RUNTIME=aws next dev --webpack -H 127.0.0.1",
     "sim": "node --experimental-transform-types --no-warnings sim/cli.ts",
     "sim:claude": "node --experimental-transform-types --no-warnings sim/claude-cli.ts",
-    "negotiate": "node --experimental-transform-types --no-warnings sim/negotiate-cli.ts"
+    "negotiate": "node --experimental-transform-types --no-warnings sim/negotiate-cli.ts",
+    "brief": "node --experimental-transform-types --no-warnings sim/brief-cli.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.8.0",

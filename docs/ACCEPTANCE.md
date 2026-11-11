@@ -44,7 +44,7 @@ offer engine).
 
 ## Acceptance scenarios
 
-### S1 · Campaign from one sentence
+### S1 · Campaign from one sentence (`tests/brief-parser.test.ts`)
 **Given** the founder says "Help my app get 100 new sign-ups, the more the better. Budget $1000, CAC no more than $10"
 **When** the founder agent parses it
 **Then** it produces `goal_count=100, budget=100000, max_cac=1000, start_price=300`,
