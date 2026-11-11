@@ -93,6 +93,19 @@ API and costs money**: the second command is a small trial run. Credentials come
 environment (`ANTHROPIC_API_KEY`). Models default to `claude-opus-5-5`; override with
 `DEALOOP_FOUNDER_MODEL` and `DEALOOP_CREATOR_MODEL`. See [docs/SPEC.md §10.1](docs/SPEC.md).
 
+## Act 1 dashboard
+
+With the dev server running, open **http://localhost:3200/sim**. It plays back one campaign tick by
+tick: verified sign-ups and the price per sign-up over 14 days, against fixed $10, with the agents'
+decisions in a feed beside the charts and the final comparison against fixed prices underneath.
+
+- By default it shows the most recent full-size Claude run in `data/sim-runs/` (made by
+  `npm run sim:claude`). The page never calls the API; comparison strategies are recomputed by
+  replaying the recorded creators' decisions.
+- The **Run** picker also offers heuristic simulations for seeds 1–5, computed on the spot.
+- Hover a chart, or focus it and use the arrow keys, to read both series at one time; "Show the
+  numbers as a table" lists every value.
+
 ## About the data
 
 The creators, conversions and comparison results shown in the demo and the pitch are **all

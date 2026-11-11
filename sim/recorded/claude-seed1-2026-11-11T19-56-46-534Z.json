@@ -1,0 +1,2868 @@
+{
+  "seed": 1,
+  "market": {
+    "name": "baseline",
+    "creators": 30,
+    "minPriceCents": [
+      300,
+      1200
+    ],
+    "dailyRate": [
+      0.2,
+      1.2
+    ],
+    "capacity": [
+      5,
+      30
+    ]
+  },
+  "brief": {
+    "goalCount": 100,
+    "budgetCents": 100000,
+    "maxCacCents": 1000,
+    "days": 14
+  },
+  "models": {
+    "founder": "claude-opus-5-5",
+    "creator": "claude-opus-5-5"
+  },
+  "usage": {
+    "calls": 258,
+    "failures": 0,
+    "inputTokens": 181187,
+    "outputTokens": 37281,
+    "byPurpose": {
+      "creator.decide": {
+        "calls": 203,
+        "inputTokens": 131205,
+        "outputTokens": 19065
+      },
+      "founder.estimate": {
+        "calls": 55,
+        "inputTokens": 49982,
+        "outputTokens": 18216
+      }
+    }
+  },
+  "claude": {
+    "seed": 1,
+    "strategy": "dynamic",
+    "market": "baseline",
+    "users": 100,
+    "spendCents": 100000,
+    "avgCacCents": 1000,
+    "utilization": 1,
+    "finalPriceCents": 1000,
+    "raises": 7,
+    "unfunded": 8,
+    "rejected": 5,
+    "goalMet": true,
+    "creatorsActive": 15,
+    "ledger": [
+      {
+        "conversionId": "creator-03-c0",
+        "seq": 1,
+        "creatorId": "creator-03",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-29-c1",
+        "seq": 2,
+        "creatorId": "creator-29",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-03-c2",
+        "seq": 3,
+        "creatorId": "creator-03",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-29-c3",
+        "seq": 4,
+        "creatorId": "creator-29",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-07-c4",
+        "seq": 5,
+        "creatorId": "creator-07",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-08-c5",
+        "seq": 6,
+        "creatorId": "creator-08",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-07-c6",
+        "seq": 7,
+        "creatorId": "creator-07",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-07-c7",
+        "seq": 8,
+        "creatorId": "creator-07",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-10-c8",
+        "seq": 9,
+        "creatorId": "creator-10",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-21-c9",
+        "seq": 10,
+        "creatorId": "creator-21",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-05-c10",
+        "seq": 11,
+        "creatorId": "creator-05",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-03-c11",
+        "seq": 12,
+        "creatorId": "creator-03",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-21-c12",
+        "seq": 13,
+        "creatorId": "creator-21",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-27-c13",
+        "seq": 14,
+        "creatorId": "creator-27",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-24-c14",
+        "seq": 15,
+        "creatorId": "creator-24",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-08-c15",
+        "seq": 16,
+        "creatorId": "creator-08",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-29-c16",
+        "seq": 17,
+        "creatorId": "creator-29",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-03-c17",
+        "seq": 18,
+        "creatorId": "creator-03",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-20-c18",
+        "seq": 19,
+        "creatorId": "creator-20",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-27-c19",
+        "seq": 20,
+        "creatorId": "creator-27",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-27-c20",
+        "seq": 21,
+        "creatorId": "creator-27",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-29-c21",
+        "seq": 22,
+        "creatorId": "creator-29",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-29-c22",
+        "seq": 23,
+        "creatorId": "creator-29",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-12-c23",
+        "seq": 24,
+        "creatorId": "creator-12",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-27-c24",
+        "seq": 25,
+        "creatorId": "creator-27",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-03-c25",
+        "seq": 26,
+        "creatorId": "creator-03",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-07-c26",
+        "seq": 27,
+        "creatorId": "creator-07",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-11-c27",
+        "seq": 28,
+        "creatorId": "creator-11",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-14-c28",
+        "seq": 29,
+        "creatorId": "creator-14",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-10-c29",
+        "seq": 30,
+        "creatorId": "creator-10",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-08-c30",
+        "seq": 31,
+        "creatorId": "creator-08",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-07-c31",
+        "seq": 32,
+        "creatorId": "creator-07",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-08-c32",
+        "seq": 33,
+        "creatorId": "creator-08",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-21-c33",
+        "seq": 34,
+        "creatorId": "creator-21",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-27-c34",
+        "seq": 35,
+        "creatorId": "creator-27",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-27-c35",
+        "seq": 36,
+        "creatorId": "creator-27",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-07-c36",
+        "seq": 37,
+        "creatorId": "creator-07",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-14-c37",
+        "seq": 38,
+        "creatorId": "creator-14",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-24-c38",
+        "seq": 39,
+        "creatorId": "creator-24",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-29-c39",
+        "seq": 40,
+        "creatorId": "creator-29",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-29-c41",
+        "seq": 42,
+        "creatorId": "creator-29",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-10-c42",
+        "seq": 43,
+        "creatorId": "creator-10",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-20-c43",
+        "seq": 44,
+        "creatorId": "creator-20",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-29-c44",
+        "seq": 45,
+        "creatorId": "creator-29",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-03-c45",
+        "seq": 46,
+        "creatorId": "creator-03",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-27-c46",
+        "seq": 47,
+        "creatorId": "creator-27",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-08-c47",
+        "seq": 48,
+        "creatorId": "creator-08",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-07-c48",
+        "seq": 49,
+        "creatorId": "creator-07",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-14-c49",
+        "seq": 50,
+        "creatorId": "creator-14",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-27-c50",
+        "seq": 51,
+        "creatorId": "creator-27",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-07-c51",
+        "seq": 52,
+        "creatorId": "creator-07",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-27-c52",
+        "seq": 53,
+        "creatorId": "creator-27",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-21-c53",
+        "seq": 54,
+        "creatorId": "creator-21",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-29-c54",
+        "seq": 55,
+        "creatorId": "creator-29",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-29-c55",
+        "seq": 56,
+        "creatorId": "creator-29",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-01-c56",
+        "seq": 57,
+        "creatorId": "creator-01",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-01-c57",
+        "seq": 58,
+        "creatorId": "creator-01",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-29-c58",
+        "seq": 59,
+        "creatorId": "creator-29",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-21-c59",
+        "seq": 60,
+        "creatorId": "creator-21",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-25-c60",
+        "seq": 61,
+        "creatorId": "creator-25",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-29-c61",
+        "seq": 62,
+        "creatorId": "creator-29",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-10-c62",
+        "seq": 63,
+        "creatorId": "creator-10",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-07-c63",
+        "seq": 64,
+        "creatorId": "creator-07",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-08-c64",
+        "seq": 65,
+        "creatorId": "creator-08",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-08-c65",
+        "seq": 66,
+        "creatorId": "creator-08",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-03-c66",
+        "seq": 67,
+        "creatorId": "creator-03",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-25-c68",
+        "seq": 69,
+        "creatorId": "creator-25",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-08-c69",
+        "seq": 70,
+        "creatorId": "creator-08",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-11-c70",
+        "seq": 71,
+        "creatorId": "creator-11",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-24-c71",
+        "seq": 72,
+        "creatorId": "creator-24",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-21-c72",
+        "seq": 73,
+        "creatorId": "creator-21",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-12-c73",
+        "seq": 74,
+        "creatorId": "creator-12",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-10-c74",
+        "seq": 75,
+        "creatorId": "creator-10",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-03-c75",
+        "seq": 76,
+        "creatorId": "creator-03",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-21-c76",
+        "seq": 77,
+        "creatorId": "creator-21",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-10-c77",
+        "seq": 78,
+        "creatorId": "creator-10",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-03-c78",
+        "seq": 79,
+        "creatorId": "creator-03",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-08-c79",
+        "seq": 80,
+        "creatorId": "creator-08",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-03-c80",
+        "seq": 81,
+        "creatorId": "creator-03",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-03-c81",
+        "seq": 82,
+        "creatorId": "creator-03",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-11-c82",
+        "seq": 83,
+        "creatorId": "creator-11",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-24-c83",
+        "seq": 84,
+        "creatorId": "creator-24",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-12-c84",
+        "seq": 85,
+        "creatorId": "creator-12",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-21-c86",
+        "seq": 87,
+        "creatorId": "creator-21",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-29-c87",
+        "seq": 88,
+        "creatorId": "creator-29",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-20-c89",
+        "seq": 90,
+        "creatorId": "creator-20",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-03-c90",
+        "seq": 91,
+        "creatorId": "creator-03",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-10-c92",
+        "seq": 93,
+        "creatorId": "creator-10",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-11-c93",
+        "seq": 94,
+        "creatorId": "creator-11",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-24-c94",
+        "seq": 95,
+        "creatorId": "creator-24",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-21-c95",
+        "seq": 96,
+        "creatorId": "creator-21",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-07-c96",
+        "seq": 97,
+        "creatorId": "creator-07",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-03-c97",
+        "seq": 98,
+        "creatorId": "creator-03",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-07-c98",
+        "seq": 99,
+        "creatorId": "creator-07",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-11-c99",
+        "seq": 100,
+        "creatorId": "creator-11",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-08-c100",
+        "seq": 101,
+        "creatorId": "creator-08",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-08-c101",
+        "seq": 102,
+        "creatorId": "creator-08",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-27-c102",
+        "seq": 103,
+        "creatorId": "creator-27",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-24-c103",
+        "seq": 104,
+        "creatorId": "creator-24",
+        "channel": "public",
+        "amountCents": 1000
+      },
+      {
+        "conversionId": "creator-21-c104",
+        "seq": 105,
+        "creatorId": "creator-21",
+        "channel": "public",
+        "amountCents": 1000
+      }
+    ],
+    "timeline": [
+      {
+        "at": 1794463200000,
+        "priceCents": 400,
+        "activeCreators": 0,
+        "verified": 0,
+        "pending": 0,
+        "unfunded": 0,
+        "committedCents": 0
+      },
+      {
+        "at": 1794484800000,
+        "priceCents": 500,
+        "activeCreators": 1,
+        "verified": 0,
+        "pending": 0,
+        "unfunded": 0,
+        "committedCents": 0
+      },
+      {
+        "at": 1794506400000,
+        "priceCents": 600,
+        "activeCreators": 3,
+        "verified": 0,
+        "pending": 0,
+        "unfunded": 0,
+        "committedCents": 0
+      },
+      {
+        "at": 1794528000000,
+        "priceCents": 700,
+        "activeCreators": 4,
+        "verified": 0,
+        "pending": 0,
+        "unfunded": 0,
+        "committedCents": 0
+      },
+      {
+        "at": 1794549600000,
+        "priceCents": 800,
+        "activeCreators": 7,
+        "verified": 0,
+        "pending": 0,
+        "unfunded": 0,
+        "committedCents": 0
+      },
+      {
+        "at": 1794571200000,
+        "priceCents": 900,
+        "activeCreators": 8,
+        "verified": 0,
+        "pending": 1,
+        "unfunded": 0,
+        "committedCents": 900
+      },
+      {
+        "at": 1794592800000,
+        "priceCents": 1000,
+        "activeCreators": 14,
+        "verified": 0,
+        "pending": 4,
+        "unfunded": 0,
+        "committedCents": 4000
+      },
+      {
+        "at": 1794614400000,
+        "priceCents": 1000,
+        "activeCreators": 15,
+        "verified": 0,
+        "pending": 7,
+        "unfunded": 0,
+        "committedCents": 7000
+      },
+      {
+        "at": 1794636000000,
+        "priceCents": 1000,
+        "activeCreators": 15,
+        "verified": 0,
+        "pending": 10,
+        "unfunded": 0,
+        "committedCents": 10000
+      },
+      {
+        "at": 1794657600000,
+        "priceCents": 1000,
+        "activeCreators": 15,
+        "verified": 1,
+        "pending": 12,
+        "unfunded": 0,
+        "committedCents": 13000
+      },
+      {
+        "at": 1794679200000,
+        "priceCents": 1000,
+        "activeCreators": 15,
+        "verified": 4,
+        "pending": 9,
+        "unfunded": 0,
+        "committedCents": 13000
+      },
+      {
+        "at": 1794700800000,
+        "priceCents": 1000,
+        "activeCreators": 15,
+        "verified": 7,
+        "pending": 7,
+        "unfunded": 0,
+        "committedCents": 14000
+      },
+      {
+        "at": 1794722400000,
+        "priceCents": 1000,
+        "activeCreators": 15,
+        "verified": 10,
+        "pending": 7,
+        "unfunded": 0,
+        "committedCents": 17000
+      },
+      {
+        "at": 1794744000000,
+        "priceCents": 1000,
+        "activeCreators": 15,
+        "verified": 13,
+        "pending": 6,
+        "unfunded": 0,
+        "committedCents": 19000
+      },
+      {
+        "at": 1794765600000,
+        "priceCents": 1000,
+        "activeCreators": 15,
+        "verified": 13,
+        "pending": 7,
+        "unfunded": 0,
+        "committedCents": 20000
+      },
+      {
+        "at": 1794787200000,
+        "priceCents": 1000,
+        "activeCreators": 15,
+        "verified": 14,
+        "pending": 10,
+        "unfunded": 0,
+        "committedCents": 24000
+      },
+      {
+        "at": 1794808800000,
+        "priceCents": 1000,
+        "activeCreators": 15,
+        "verified": 17,
+        "pending": 15,
+        "unfunded": 0,
+        "committedCents": 32000
+      },
+      {
+        "at": 1794830400000,
+        "priceCents": 1000,
+        "activeCreators": 15,
+        "verified": 19,
+        "pending": 15,
+        "unfunded": 0,
+        "committedCents": 34000
+      },
+      {
+        "at": 1794852000000,
+        "priceCents": 1000,
+        "activeCreators": 15,
+        "verified": 20,
+        "pending": 15,
+        "unfunded": 0,
+        "committedCents": 35000
+      },
+      {
+        "at": 1794873600000,
+        "priceCents": 1000,
+        "activeCreators": 15,
+        "verified": 24,
+        "pending": 13,
+        "unfunded": 0,
+        "committedCents": 37000
+      },
+      {
+        "at": 1794895200000,
+        "priceCents": 1000,
+        "activeCreators": 15,
+        "verified": 32,
+        "pending": 5,
+        "unfunded": 0,
+        "committedCents": 37000
+      },
+      {
+        "at": 1794916800000,
+        "priceCents": 1000,
+        "activeCreators": 15,
+        "verified": 34,
+        "pending": 4,
+        "unfunded": 0,
+        "committedCents": 38000
+      },
+      {
+        "at": 1794938400000,
+        "priceCents": 1000,
+        "activeCreators": 15,
+        "verified": 35,
+        "pending": 6,
+        "unfunded": 0,
+        "committedCents": 41000
+      },
+      {
+        "at": 1794960000000,
+        "priceCents": 1000,
+        "activeCreators": 15,
+        "verified": 37,
+        "pending": 6,
+        "unfunded": 0,
+        "committedCents": 43000
+      },
+      {
+        "at": 1794981600000,
+        "priceCents": 1000,
+        "activeCreators": 15,
+        "verified": 37,
+        "pending": 12,
+        "unfunded": 0,
+        "committedCents": 49000
+      },
+      {
+        "at": 1795003200000,
+        "priceCents": 1000,
+        "activeCreators": 15,
+        "verified": 38,
+        "pending": 13,
+        "unfunded": 0,
+        "committedCents": 51000
+      },
+      {
+        "at": 1795024800000,
+        "priceCents": 1000,
+        "activeCreators": 15,
+        "verified": 40,
+        "pending": 12,
+        "unfunded": 0,
+        "committedCents": 52000
+      },
+      {
+        "at": 1795046400000,
+        "priceCents": 1000,
+        "activeCreators": 15,
+        "verified": 42,
+        "pending": 13,
+        "unfunded": 0,
+        "committedCents": 55000
+      },
+      {
+        "at": 1795068000000,
+        "priceCents": 1000,
+        "activeCreators": 15,
+        "verified": 48,
+        "pending": 8,
+        "unfunded": 0,
+        "committedCents": 56000
+      },
+      {
+        "at": 1795089600000,
+        "priceCents": 1000,
+        "activeCreators": 15,
+        "verified": 50,
+        "pending": 8,
+        "unfunded": 0,
+        "committedCents": 58000
+      },
+      {
+        "at": 1795111200000,
+        "priceCents": 1000,
+        "activeCreators": 15,
+        "verified": 52,
+        "pending": 6,
+        "unfunded": 0,
+        "committedCents": 58000
+      },
+      {
+        "at": 1795132800000,
+        "priceCents": 1000,
+        "activeCreators": 15,
+        "verified": 55,
+        "pending": 6,
+        "unfunded": 0,
+        "committedCents": 61000
+      },
+      {
+        "at": 1795154400000,
+        "priceCents": 1000,
+        "activeCreators": 15,
+        "verified": 56,
+        "pending": 8,
+        "unfunded": 0,
+        "committedCents": 64000
+      },
+      {
+        "at": 1795176000000,
+        "priceCents": 1000,
+        "activeCreators": 15,
+        "verified": 58,
+        "pending": 6,
+        "unfunded": 0,
+        "committedCents": 64000
+      },
+      {
+        "at": 1795197600000,
+        "priceCents": 1000,
+        "activeCreators": 15,
+        "verified": 58,
+        "pending": 9,
+        "unfunded": 0,
+        "committedCents": 67000
+      },
+      {
+        "at": 1795219200000,
+        "priceCents": 1000,
+        "activeCreators": 15,
+        "verified": 61,
+        "pending": 7,
+        "unfunded": 0,
+        "committedCents": 68000
+      },
+      {
+        "at": 1795240800000,
+        "priceCents": 1000,
+        "activeCreators": 15,
+        "verified": 64,
+        "pending": 6,
+        "unfunded": 0,
+        "committedCents": 70000
+      },
+      {
+        "at": 1795262400000,
+        "priceCents": 1000,
+        "activeCreators": 15,
+        "verified": 64,
+        "pending": 9,
+        "unfunded": 0,
+        "committedCents": 73000
+      },
+      {
+        "at": 1795284000000,
+        "priceCents": 1000,
+        "activeCreators": 15,
+        "verified": 66,
+        "pending": 8,
+        "unfunded": 0,
+        "committedCents": 74000
+      },
+      {
+        "at": 1795305600000,
+        "priceCents": 1000,
+        "activeCreators": 15,
+        "verified": 67,
+        "pending": 11,
+        "unfunded": 0,
+        "committedCents": 78000
+      },
+      {
+        "at": 1795327200000,
+        "priceCents": 1000,
+        "activeCreators": 15,
+        "verified": 69,
+        "pending": 14,
+        "unfunded": 0,
+        "committedCents": 83000
+      },
+      {
+        "at": 1795348800000,
+        "priceCents": 1000,
+        "activeCreators": 15,
+        "verified": 72,
+        "pending": 14,
+        "unfunded": 0,
+        "committedCents": 86000
+      },
+      {
+        "at": 1795370400000,
+        "priceCents": 1000,
+        "activeCreators": 14,
+        "verified": 74,
+        "pending": 13,
+        "unfunded": 0,
+        "committedCents": 87000
+      },
+      {
+        "at": 1795392000000,
+        "priceCents": 1000,
+        "activeCreators": 14,
+        "verified": 78,
+        "pending": 12,
+        "unfunded": 0,
+        "committedCents": 90000
+      },
+      {
+        "at": 1795413600000,
+        "priceCents": 1000,
+        "activeCreators": 14,
+        "verified": 83,
+        "pending": 8,
+        "unfunded": 0,
+        "committedCents": 91000
+      },
+      {
+        "at": 1795435200000,
+        "priceCents": 1000,
+        "activeCreators": 13,
+        "verified": 85,
+        "pending": 6,
+        "unfunded": 0,
+        "committedCents": 91000
+      },
+      {
+        "at": 1795456800000,
+        "priceCents": 1000,
+        "activeCreators": 13,
+        "verified": 85,
+        "pending": 8,
+        "unfunded": 0,
+        "committedCents": 93000
+      },
+      {
+        "at": 1795478400000,
+        "priceCents": 1000,
+        "activeCreators": 13,
+        "verified": 87,
+        "pending": 6,
+        "unfunded": 0,
+        "committedCents": 93000
+      },
+      {
+        "at": 1795500000000,
+        "priceCents": 1000,
+        "activeCreators": 13,
+        "verified": 88,
+        "pending": 7,
+        "unfunded": 0,
+        "committedCents": 95000
+      },
+      {
+        "at": 1795521600000,
+        "priceCents": 1000,
+        "activeCreators": 13,
+        "verified": 89,
+        "pending": 6,
+        "unfunded": 0,
+        "committedCents": 95000
+      },
+      {
+        "at": 1795543200000,
+        "priceCents": 1000,
+        "activeCreators": 13,
+        "verified": 92,
+        "pending": 5,
+        "unfunded": 0,
+        "committedCents": 97000
+      },
+      {
+        "at": 1795564800000,
+        "priceCents": 1000,
+        "activeCreators": 13,
+        "verified": 93,
+        "pending": 6,
+        "unfunded": 0,
+        "committedCents": 99000
+      },
+      {
+        "at": 1795586400000,
+        "priceCents": 1000,
+        "activeCreators": 12,
+        "verified": 95,
+        "pending": 5,
+        "unfunded": 0,
+        "committedCents": 100000
+      },
+      {
+        "at": 1795608000000,
+        "priceCents": 1000,
+        "activeCreators": 12,
+        "verified": 95,
+        "pending": 5,
+        "unfunded": 2,
+        "committedCents": 100000
+      },
+      {
+        "at": 1795629600000,
+        "priceCents": 1000,
+        "activeCreators": 11,
+        "verified": 97,
+        "pending": 3,
+        "unfunded": 5,
+        "committedCents": 100000
+      },
+      {
+        "at": 1795651200000,
+        "priceCents": 1000,
+        "activeCreators": 11,
+        "verified": 99,
+        "pending": 1,
+        "unfunded": 8,
+        "committedCents": 100000
+      }
+    ],
+    "agentLog": [
+      {
+        "at": 1794441600000,
+        "actor": "creator-01",
+        "kind": "decline",
+        "text": "The current $3.00 per sign-up is below your $8.64 minimum, so I'm declining for now; prices only rise and everyone is paid the final price, so I can join without penalty if it climbs past your floor before the deal closes."
+      },
+      {
+        "at": 1794441600000,
+        "actor": "creator-02",
+        "kind": "decline",
+        "text": "The $3.00 per sign-up offer is below your $11.72 minimum, and even its $10.00 ceiling would never reach your floor, so I declined this Dealoop campaign."
+      },
+      {
+        "at": 1794441600000,
+        "actor": "creator-03",
+        "kind": "decline",
+        "text": "The current $3.00 per sign-up is below your $6.83 minimum, so I declined; since prices only rise and everyone gets the final price, I can join later if it climbs past your floor and still fits your productivity audience."
+      },
+      {
+        "at": 1794441600000,
+        "actor": "creator-04",
+        "kind": "decline",
+        "text": "I declined because the $3.00 per sign-up offer is below your $4.25 minimum, and a creator-and-founder marketplace is also a weak fit for your home-cooking audience, so I wouldn't recommend it even if the price rises."
+      },
+      {
+        "at": 1794441600000,
+        "actor": "creator-05",
+        "kind": "decline",
+        "text": "The $3.00 per sign-up offer is below your $7.40 minimum, so I declined; Dealoop is also only a loose fit for a personal finance audience, and since everyone who joins gets the final price, I can reconsider if it rises above your floor."
+      },
+      {
+        "at": 1794441600000,
+        "actor": "creator-06",
+        "kind": "decline",
+        "text": "I declined because the $3.00 per sign-up offer is below your $5.57 minimum, and a marketplace for indie founders and creators is a weak fit for a parenting audience anyway."
+      },
+      {
+        "at": 1794441600000,
+        "actor": "creator-07",
+        "kind": "decline",
+        "text": "Dealoop is a decent fit for your no-code builder audience, but the current $3.00 per sign-up is below your $8.31 minimum, so I'm declining for now; since everyone who joins gets the final price, we lose nothing by rejoining if it rises above your floor (it can go up to $10.00)."
+      },
+      {
+        "at": 1794441600000,
+        "actor": "creator-08",
+        "kind": "decline",
+        "text": "The current offer of $3.00 per sign-up is below your $8.92 minimum, so I'm declining for now, though Dealoop fits your no-code audience well and I'd reconsider if the price rises to at least $8.92 (it can reach $10.00)."
+      },
+      {
+        "at": 1794441600000,
+        "actor": "creator-09",
+        "kind": "decline",
+        "text": "The current $3.00 per sign-up is below your $9.49 minimum, so I'm declining; since prices only rise and everyone is paid the final price, I can reconsider if it climbs past your floor, though a creator-marketplace tool is only a loose fit for a personal finance audience anyway."
+      },
+      {
+        "at": 1794441600000,
+        "actor": "creator-10",
+        "kind": "decline",
+        "text": "The current $3.00 per sign-up is below your $5.15 minimum, so I'm declining for now; prices only rise and everyone who joins is paid the final price, so I can revisit if it reaches your floor, though it's only a moderate fit for a tech-career audience."
+      },
+      {
+        "at": 1794441600000,
+        "actor": "creator-11",
+        "kind": "decline",
+        "text": "Dealoop is a strong fit for your indie hacking and bootstrapped SaaS audience, but the current $3.00 per sign-up is below your $6.72 minimum, so I'm declining for now and will reconsider if the price rises above your floor."
+      },
+      {
+        "at": 1794441600000,
+        "actor": "creator-12",
+        "kind": "decline",
+        "text": "Dealoop is a strong fit for your freelancing and creator-economy audience, but the current $3.00 per sign-up is below your $8.19 minimum, so I'm declining for now and can reconsider if the price rises above your floor."
+      },
+      {
+        "at": 1794441600000,
+        "actor": "creator-13",
+        "kind": "decline",
+        "text": "I declined: the $3.00 per sign-up offer is well below your $8.60 minimum, and Dealoop, a marketplace for indie founders and creators, isn't a natural fit for your parenting audience anyway — if the price later rises above your floor, I'd still weigh that weak fit carefully."
+      },
+      {
+        "at": 1794441600000,
+        "actor": "creator-14",
+        "kind": "decline",
+        "text": "The current $3.00 per sign-up is below your $9.47 minimum, so I'm declining for now; since everyone who joins is paid the final price, nothing is lost by passing, and I can reconsider if the price rises above your floor (it can reach $10.00), though Dealoop is only a moderate fit for a UI/UX design audience."
+      },
+      {
+        "at": 1794441600000,
+        "actor": "creator-15",
+        "kind": "decline",
+        "text": "I declined because the $3.00 offer is below your $11.58 minimum per sign-up, and even its $10.00 ceiling would never reach your floor."
+      },
+      {
+        "at": 1794441600000,
+        "actor": "creator-16",
+        "kind": "decline",
+        "text": "Dealoop is a strong fit for your startup growth audience, but the $3.00 offer is below your $10.51 minimum per sign-up, and even its $10.00 cap couldn't meet that floor, so I declined."
+      },
+      {
+        "at": 1794441600000,
+        "actor": "creator-17",
+        "kind": "decline",
+        "text": "I declined this Dealoop campaign: it pays $3.00 per verified sign-up and is capped at $10.00, so even at its maximum it can never reach your $10.82 minimum take-home."
+      },
+      {
+        "at": 1794441600000,
+        "actor": "creator-18",
+        "kind": "decline",
+        "text": "I declined: the $3.00 offer, and even its $10.00 maximum, falls below your $11.43 minimum per sign-up, and a creator-and-founder marketplace is a weak fit for a fitness and running audience anyway."
+      },
+      {
+        "at": 1794441600000,
+        "actor": "creator-19",
+        "kind": "decline",
+        "text": "The $3.00 offer, which can rise to at most $10.00, never reaches your $11.54 minimum per sign-up, and a creator-marketplace tool for indie founders is a weak fit for a travel vlogging audience anyway."
+      },
+      {
+        "at": 1794441600000,
+        "actor": "creator-20",
+        "kind": "decline",
+        "text": "I declined because the $3.00 per sign-up offer is below your $6.49 minimum take-home, even though Dealoop is a reasonable fit for an AI-tools audience and the price could rise to $10.00 later."
+      },
+      {
+        "at": 1794441600000,
+        "actor": "creator-21",
+        "kind": "decline",
+        "text": "Dealoop is a strong fit for your startup growth-marketing audience, but the current $3.00 per sign-up is below your $8.92 minimum, so I'm declining for now; since prices only rise and every participant gets the final price, I can join later if it reaches your floor (it can go as high as $10.00)."
+      },
+      {
+        "at": 1794441600000,
+        "actor": "creator-22",
+        "kind": "decline",
+        "text": "Dealoop fits your growth-marketing-for-startups audience well, but the current $3.00 per sign-up and even its $10.00 maximum both fall below your $10.27 minimum take-home, so I declined."
+      },
+      {
+        "at": 1794441600000,
+        "actor": "creator-23",
+        "kind": "decline",
+        "text": "I declined this Dealoop campaign because its $3.00 per sign-up is below your $5.73 minimum, and a creator-and-founder marketplace isn't a natural fit for your fitness and running audience anyway."
+      },
+      {
+        "at": 1794441600000,
+        "actor": "creator-24",
+        "kind": "decline",
+        "text": "I declined Dealoop because the current $3.00 per sign-up is below your $8.89 minimum, and since everyone who joins gets the final price anyway, there's no cost to waiting until the price clears your floor."
+      },
+      {
+        "at": 1794441600000,
+        "actor": "creator-25",
+        "kind": "decline",
+        "text": "The current $3.00 per sign-up is below your $4.27 minimum, so I'm declining for now; since everyone who joins is paid the final price, I can join later at no loss if the price rises above your floor."
+      },
+      {
+        "at": 1794441600000,
+        "actor": "creator-26",
+        "kind": "decline",
+        "text": "The $3.00 per sign-up offer is below your $8.86 minimum, so I declined; Dealoop is also a weak fit for a travel vlogging audience, though because everyone who joins is paid the final price, I can revisit it if the price rises above your floor."
+      },
+      {
+        "at": 1794441600000,
+        "actor": "creator-27",
+        "kind": "decline",
+        "text": "Dealoop is a strong fit for your freelancing and creator-economy audience, but the current $3.00 per sign-up is below your $4.90 minimum, so I'm declining for now and would reconsider if the price rises to your floor."
+      },
+      {
+        "at": 1794441600000,
+        "actor": "creator-28",
+        "kind": "decline",
+        "text": "Dealoop offers $3.00 per verified sign-up and can rise to at most $10.00, both below your $11.59 minimum, so I declined even though a creator marketplace is a reasonable fit for your developer audience."
+      },
+      {
+        "at": 1794441600000,
+        "actor": "creator-29",
+        "kind": "decline",
+        "text": "The current $3.00 per sign-up is below your $3.25 minimum, so I declined for now, though this creator-monetization marketplace is a reasonable fit for a tech career audience and I'd reconsider if the price rises above your floor."
+      },
+      {
+        "at": 1794441600000,
+        "actor": "creator-30",
+        "kind": "decline",
+        "text": "I declined: the $3.00 offer is below your $10.79 per-sign-up minimum, and even its $10.00 ceiling would never reach your floor, so this campaign can't pay what you require regardless of how well Dealoop fits your developer audience."
+      },
+      {
+        "at": 1794463200000,
+        "actor": "founder",
+        "kind": "raise",
+        "text": "Forecast 20 more at the current price vs 30 one step up. With only 6 hours elapsed and zero sign-ups from zero creators at $3.00, there is almost no data, so these forecasts are rough priors based mainly on the long 330h remaining, not on an observed rate. A $4.00 price should modestly widen the pool of willing creators, but the size of that lift is unknown until sign-ups begin arriving. Core: A higher price is expected to bring more users within budget. (projected 20 vs 30 users; price now $4.00)"
+      },
+      {
+        "at": 1794463200000,
+        "actor": "creator-01",
+        "kind": "decline",
+        "text": "The current offer of $4.00 per sign-up is below your $8.64 minimum, so I'm declining for now; since prices only rise and everyone who joins gets the final price, nothing is lost by waiting to see if it reaches your floor."
+      },
+      {
+        "at": 1794463200000,
+        "actor": "creator-02",
+        "kind": "decline",
+        "text": "I declined this Dealoop campaign because it pays $4.00 per sign-up and can rise to at most $10.00, which never reaches your $11.72 minimum take-home, so it fails your floor regardless of how well it fits your audience."
+      },
+      {
+        "at": 1794463200000,
+        "actor": "creator-03",
+        "kind": "decline",
+        "text": "The current $4.00 per sign-up is below your $6.83 minimum, so I declined; since everyone who joins gets the final price, I can reconsider if the offer rises above your floor, though Dealoop is only a moderate fit for a productivity and note-taking audience."
+      },
+      {
+        "at": 1794463200000,
+        "actor": "creator-04",
+        "kind": "decline",
+        "text": "I declined because the $4.00 per sign-up offer is below your $4.25 minimum, and a marketplace for indie founders and creators is also a weak fit for your home-cooking audience."
+      },
+      {
+        "at": 1794463200000,
+        "actor": "creator-05",
+        "kind": "decline",
+        "text": "I declined Dealoop because its current $4.00 per sign-up is below your $7.40 minimum; it could rise as high as $10.00, so if it reaches your floor I'll weigh whether a creator-monetization marketplace suits your personal-finance audience."
+      },
+      {
+        "at": 1794463200000,
+        "actor": "creator-06",
+        "kind": "decline",
+        "text": "I declined because the $4.00 per sign-up offer is below your $5.57 minimum, and Dealoop, a tool for indie founders and creators, is also a weak fit for a parenting audience."
+      },
+      {
+        "at": 1794463200000,
+        "actor": "creator-07",
+        "kind": "decline",
+        "text": "The current offer of $4.00 per verified sign-up is below your $8.31 minimum, so I'm declining for now, though Dealoop is a reasonable fit for a no-code audience of indie builders and the price can rise to $10.00, so it's worth revisiting if it clears your floor."
+      },
+      {
+        "at": 1794463200000,
+        "actor": "creator-08",
+        "kind": "decline",
+        "text": "The current $4.00 per sign-up is below your $8.92 minimum, so I'm declining for now, though Dealoop is a reasonable fit for a no-code audience and I'd reconsider if the price rises above your floor (it can reach $10.00)."
+      },
+      {
+        "at": 1794463200000,
+        "actor": "creator-09",
+        "kind": "decline",
+        "text": "The current $4.00 per sign-up is below your $9.49 minimum, so I'm declining for now; since prices only rise and everyone is paid the final price, nothing is lost by waiting, and I'd reconsider only if it climbs past your floor and the fit for a personal-finance audience holds up."
+      },
+      {
+        "at": 1794463200000,
+        "actor": "creator-10",
+        "kind": "decline",
+        "text": "The current offer of $4.00 per sign-up is below your $5.15 minimum, so I'm declining for now; since prices only rise and everyone who joins gets the final price, nothing is lost by waiting, and I'd reconsider if it climbs above your floor, as Dealoop is a reasonable fit for an audience interested in tech careers and side income."
+      },
+      {
+        "at": 1794463200000,
+        "actor": "creator-11",
+        "kind": "decline",
+        "text": "Dealoop is a strong fit for your indie hacking audience, but the current $4.00 per sign-up is below your $6.72 minimum, so I'm declining for now and would only join if the price rises to at least your floor."
+      },
+      {
+        "at": 1794463200000,
+        "actor": "creator-12",
+        "kind": "decline",
+        "text": "Dealoop is a strong fit for your freelancing and creator-economy audience, but the current $4.00 per sign-up is below your $8.19 minimum, so I'm declining for now; since prices only rise and everyone is paid the final price, I can join without penalty if it reaches your floor."
+      },
+      {
+        "at": 1794463200000,
+        "actor": "creator-13",
+        "kind": "decline",
+        "text": "I declined this Dealoop campaign because the $4.00 per sign-up offer is below your $8.60 minimum, and a marketplace for indie founders and creators is also a weak fit for a parenting audience, so I wouldn't recommend it even if the price rose toward $10.00."
+      },
+      {
+        "at": 1794463200000,
+        "actor": "creator-14",
+        "kind": "decline",
+        "text": "I declined because the current $4.00 per sign-up is below your $9.47 minimum; since everyone who joins is paid the final price, I can reconsider if it rises above your floor, and it's a moderate fit for a UI/UX design audience anyway."
+      },
+      {
+        "at": 1794463200000,
+        "actor": "creator-15",
+        "kind": "decline",
+        "text": "Declining: the offer is $4.00 per sign-up and can rise to at most $10.00, so it can never reach your $11.58 minimum, even though Dealoop is a reasonable fit for an AI-tools audience."
+      },
+      {
+        "at": 1794463200000,
+        "actor": "creator-16",
+        "kind": "decline",
+        "text": "Dealoop is a strong fit for your startup growth-marketing audience, but the $4.00 offer, and even its $10.00 maximum, falls below your $10.51 minimum take-home, so I declined."
+      },
+      {
+        "at": 1794463200000,
+        "actor": "creator-17",
+        "kind": "decline",
+        "text": "I declined this Dealoop campaign because its $4.00 per sign-up, and even its $10.00 maximum, falls below your $10.82 minimum take-home, so it cannot meet your floor no matter how the price rises."
+      },
+      {
+        "at": 1794463200000,
+        "actor": "creator-18",
+        "kind": "decline",
+        "text": "The $4.00 offer is below your $11.43 minimum and can never get there since it caps at $10.00, and a marketplace for founders and creators is a weak fit for a fitness and running audience anyway."
+      },
+      {
+        "at": 1794463200000,
+        "actor": "creator-19",
+        "kind": "decline",
+        "text": "I declined this Dealoop campaign because it pays $4.00 per sign-up and can rise to at most $10.00, which never reaches your $11.54 minimum, and a creator-and-founder marketplace isn't a natural fit for a travel vlogging audience anyway."
+      },
+      {
+        "at": 1794463200000,
+        "actor": "creator-20",
+        "kind": "decline",
+        "text": "The current $4.00 per sign-up is below your $6.49 minimum, so I'm declining for now; I'll take another look if the price rises above your floor, since Dealoop is a reasonable fit for an AI-tools audience that includes creators and indie builders."
+      },
+      {
+        "at": 1794463200000,
+        "actor": "creator-21",
+        "kind": "decline",
+        "text": "Dealoop is a strong fit for your startup growth-marketing audience, but the current $4.00 per sign-up is below your $8.92 minimum, so I'm declining for now; since everyone who joins is paid the final price, I can join with no penalty if the price rises to $8.92 or more (it can reach $10.00)."
+      },
+      {
+        "at": 1794463200000,
+        "actor": "creator-22",
+        "kind": "decline",
+        "text": "Dealoop fits your startup growth-marketing audience well, but the $4.00 offer, and even its $10.00 ceiling, falls below your $10.27 minimum take-home per sign-up, so I declined."
+      },
+      {
+        "at": 1794463200000,
+        "actor": "creator-23",
+        "kind": "decline",
+        "text": "I declined: the $4.00 per sign-up offer is below your $5.73 minimum, and a creator-and-founder marketplace isn't a natural fit for your fitness and running audience anyway, though I could revisit it if the price rises above your floor."
+      },
+      {
+        "at": 1794463200000,
+        "actor": "creator-24",
+        "kind": "decline",
+        "text": "I declined because the current $4.00 per sign-up is below your $8.89 minimum, and since everyone who joins is paid the final price, I can reconsider if it rises above your floor (it can reach $10.00), though the fit with a UI/UX audience is only moderate."
+      },
+      {
+        "at": 1794463200000,
+        "actor": "creator-25",
+        "kind": "decline",
+        "text": "I declined Dealoop because its current $4.00 per sign-up is below your $4.27 minimum, and since everyone who joins is paid the final price, I can still accept if it rises above your floor, where it would be a reasonable fit for your AI-tools audience."
+      },
+      {
+        "at": 1794463200000,
+        "actor": "creator-26",
+        "kind": "decline",
+        "text": "I declined because the $4.00 per sign-up offer is below your $8.86 minimum, and a creator-marketplace tool is a weak fit for a travel vlogging audience anyway."
+      },
+      {
+        "at": 1794463200000,
+        "actor": "creator-27",
+        "kind": "decline",
+        "text": "Dealoop is a strong fit for your freelancing and creator-economy audience, but the current $4.00 per sign-up is below your $4.90 minimum, so I'm declining for now and would reconsider if the price rises to your floor."
+      },
+      {
+        "at": 1794463200000,
+        "actor": "creator-28",
+        "kind": "decline",
+        "text": "I declined Dealoop because the $4.00 per sign-up offer, and even its $10.00 maximum, falls below your $11.59 minimum take-home, so it can never meet your floor no matter how the fit looks."
+      },
+      {
+        "at": 1794463200000,
+        "actor": "creator-29",
+        "kind": "join",
+        "text": "At $4.00 per sign-up this clears your $3.25 floor, and Dealoop is a reasonable fit for a tech career audience, since many of your viewers are builders, indie founders, or aspiring creators who could use a performance-based way to earn or launch, and waiting gains nothing because everyone is paid the final price."
+      },
+      {
+        "at": 1794463200000,
+        "actor": "creator-30",
+        "kind": "decline",
+        "text": "Declining: the $4.00 offer, and even its $10.00 maximum, falls below your $10.79 minimum take-home per sign-up, so this campaign can never meet your floor, regardless of how well Dealoop fits a developer and open-source audience."
+      },
+      {
+        "at": 1794484800000,
+        "actor": "founder",
+        "kind": "raise",
+        "text": "Forecast 10 more at the current price vs 18 one step up. With only 12 hours of data and zero sign-ups from zero creators at both $3 and $4, there is almost no signal, so these forecasts for the remaining 324 hours are low-confidence priors assuming slow organic discovery at $4. A step to $5 should modestly widen the pool of creators whose floor sits above $4, but the absence of any response so far suggests demand-side awareness, not just price, may be limiting supply. Core: A higher price is expected to bring more users within budget. (projected 10 vs 18 users; price now $5.00)"
+      },
+      {
+        "at": 1794484800000,
+        "actor": "creator-01",
+        "kind": "decline",
+        "text": "The current $5.00 per sign-up is below your $8.64 minimum, so I'm declining for now; it could rise as high as $10.00, and Dealoop is a reasonable fit for a tech career audience, so I'll reconsider if the price clears your floor."
+      },
+      {
+        "at": 1794484800000,
+        "actor": "creator-02",
+        "kind": "decline",
+        "text": "The $5.00 offer, and even its $10.00 maximum, falls below your $11.72 minimum per sign-up, so I declined regardless of fit."
+      },
+      {
+        "at": 1794484800000,
+        "actor": "creator-03",
+        "kind": "decline",
+        "text": "I declined: the current $5.00 per sign-up is below your $6.83 minimum, and since everyone who joins is paid the final price anyway, I can reconsider if the offer rises above your floor — though Dealoop itself is only a moderate fit for a productivity and note-taking audience."
+      },
+      {
+        "at": 1794484800000,
+        "actor": "creator-04",
+        "kind": "decline",
+        "text": "Although $5.00 clears your $4.25 floor, Dealoop is a B2B marketplace for indie founders and creators, which is a poor fit for your home-cooking audience on LinkedIn, so promoting it would risk their trust."
+      },
+      {
+        "at": 1794484800000,
+        "actor": "creator-05",
+        "kind": "decline",
+        "text": "The current $5.00 per sign-up is below your $7.40 minimum, so I'm declining for now; since everyone who joins is paid the final price, nothing is lost by waiting to see if it rises (it can reach $10.00), though the fit with a personal finance audience is only moderate anyway."
+      },
+      {
+        "at": 1794484800000,
+        "actor": "creator-06",
+        "kind": "decline",
+        "text": "The $5.00 per sign-up offer is below your $5.57 minimum, so I declined; Dealoop, a marketplace for indie founders and creators, is also a weak fit for a parenting audience."
+      },
+      {
+        "at": 1794484800000,
+        "actor": "creator-07",
+        "kind": "decline",
+        "text": "Dealoop is a reasonable fit for your no-code audience of indie builders, but the current $5.00 per sign-up is below your $8.31 minimum, so I'm declining for now (I can reconsider if the price rises above your floor, since everyone who joins gets the final price)."
+      },
+      {
+        "at": 1794484800000,
+        "actor": "creator-08",
+        "kind": "decline",
+        "text": "The current $5.00 per sign-up is below your $8.92 minimum, so I'm declining for now; it's a good fit for your no-code audience, and since the price can rise to $10.00 I'll reconsider if it reaches your floor."
+      },
+      {
+        "at": 1794484800000,
+        "actor": "creator-09",
+        "kind": "decline",
+        "text": "The $5.00 per sign-up offer is below your $9.49 minimum, so I declined; Dealoop also isn't a strong fit for a personal finance audience, though I can reconsider if the price rises above your floor and the fit looks better."
+      },
+      {
+        "at": 1794484800000,
+        "actor": "creator-10",
+        "kind": "decline",
+        "text": "The current $5.00 per sign-up is below your $5.15 minimum, so I'm declining for now, though Dealoop is a reasonable fit for a tech-career audience and I'd reconsider if the price rises above your floor."
+      },
+      {
+        "at": 1794484800000,
+        "actor": "creator-11",
+        "kind": "decline",
+        "text": "Dealoop is a strong fit for your indie-hacking audience, but the $5.00 per sign-up offer is below your $6.72 minimum, so I declined; if the price rises to meet your floor I can reconsider, and since everyone who joins is paid the final price, joining later costs you nothing."
+      },
+      {
+        "at": 1794484800000,
+        "actor": "creator-12",
+        "kind": "decline",
+        "text": "Dealoop is a strong fit for your freelancing and creator-economy audience, but the current $5.00 per sign-up is below your $8.19 minimum, so I'm declining for now; since prices only rise and everyone gets the final price, I can join with no downside if it reaches your floor."
+      },
+      {
+        "at": 1794484800000,
+        "actor": "creator-13",
+        "kind": "decline",
+        "text": "I declined this Dealoop campaign because $5.00 per sign-up is below your $8.60 minimum, and a marketplace for indie founders and creators isn't a natural fit for your parenting audience anyway."
+      },
+      {
+        "at": 1794484800000,
+        "actor": "creator-14",
+        "kind": "decline",
+        "text": "The current $5.00 per sign-up is below your $9.47 minimum, so I'm declining for now; prices only rise and everyone who joins gets the final price, so I can reconsider if it reaches your floor, though Dealoop is only a moderate fit for a UI/UX design audience anyway."
+      },
+      {
+        "at": 1794484800000,
+        "actor": "creator-15",
+        "kind": "decline",
+        "text": "The $5.00 offer, which can rise to at most $10.00, never reaches your $11.58 minimum per sign-up, so I declined even though Dealoop is a plausible fit for your AI tools audience."
+      },
+      {
+        "at": 1794484800000,
+        "actor": "creator-16",
+        "kind": "decline",
+        "text": "Although Dealoop fits your startup growth-marketing audience well, the $5.00 offer and even its $10.00 maximum fall below your $10.51 minimum take-home per sign-up, so I declined."
+      },
+      {
+        "at": 1794484800000,
+        "actor": "creator-17",
+        "kind": "decline",
+        "text": "I declined: Dealoop pays $5.00 per sign-up and is capped at $10.00, so even its maximum stays below your $10.82 minimum, and waiting for a raise can't change that."
+      },
+      {
+        "at": 1794484800000,
+        "actor": "creator-18",
+        "kind": "decline",
+        "text": "I declined: the $5.00 offer, and even its $10.00 ceiling, falls below your $11.43 minimum per sign-up, and a creator-founder marketplace is a weak fit for a fitness and running audience anyway."
+      },
+      {
+        "at": 1794484800000,
+        "actor": "creator-19",
+        "kind": "decline",
+        "text": "The offer is $5.00 per sign-up and can rise to at most $10.00, which never reaches your $11.54 minimum, so I declined; Dealoop is also only a loose fit for a travel vlogging audience."
+      },
+      {
+        "at": 1794484800000,
+        "actor": "creator-20",
+        "kind": "decline",
+        "text": "The current $5.00 per sign-up is below your $6.49 minimum take-home, so I'm declining for now even though Dealoop is a reasonable fit for an AI-tools audience; since prices only rise, I can reconsider if it reaches your floor."
+      },
+      {
+        "at": 1794484800000,
+        "actor": "creator-21",
+        "kind": "decline",
+        "text": "Dealoop is a strong fit for your startup growth-marketing audience, but the current $5.00 per sign-up is below your $8.92 minimum, so I'm declining for now and will only accept if the price rises to at least your floor."
+      },
+      {
+        "at": 1794484800000,
+        "actor": "creator-22",
+        "kind": "decline",
+        "text": "Dealoop is a strong fit for your startup growth-marketing audience, but the $5.00 offer, and even its $10.00 maximum, falls below your $10.27 minimum take-home, so I declined."
+      },
+      {
+        "at": 1794484800000,
+        "actor": "creator-23",
+        "kind": "decline",
+        "text": "I declined because the $5.00 per sign-up offer is below your $5.73 minimum, and Dealoop (a creator/founder marketplace) is also a weak fit for a fitness and running audience."
+      },
+      {
+        "at": 1794484800000,
+        "actor": "creator-24",
+        "kind": "decline",
+        "text": "The $5.00 per sign-up offer is below your $8.89 minimum, so I declined; the price can rise to $10.00, and if it reaches your floor I'll reconsider, since Dealoop is a reasonable fit for an audience of designers and indie builders."
+      },
+      {
+        "at": 1794484800000,
+        "actor": "creator-25",
+        "kind": "join",
+        "text": "At $5.00 per sign-up, this clears your $4.27 floor, and Dealoop is a credible fit for an AI tools audience that includes many indie builders and creators who could use performance deals, so I'm joining now since everyone is paid the final price anyway and waiting gains nothing."
+      },
+      {
+        "at": 1794484800000,
+        "actor": "creator-26",
+        "kind": "decline",
+        "text": "The $5.00 per sign-up offer is below your $8.86 minimum, so I declined; Dealoop is also a weak fit for a travel vlogging audience, and you'd be paid the final price anyway if it rises and we reconsider."
+      },
+      {
+        "at": 1794484800000,
+        "actor": "creator-27",
+        "kind": "join",
+        "text": "At $5.00 per verified sign-up, Dealoop clears your $4.90 floor and is a strong fit for a freelancing and creator-economy audience. Note that this campaign is for Dealoop itself, the platform I operate on, so weigh that conflict of interest; I judged it on price and audience fit alone, and joining now loses nothing since everyone is paid the final price."
+      },
+      {
+        "at": 1794484800000,
+        "actor": "creator-28",
+        "kind": "decline",
+        "text": "Dealoop pays $5.00 per verified sign-up and can rise to at most $10.00, so even the maximum is below your $11.59 minimum and I declined, regardless of how well it fits your developer audience."
+      },
+      {
+        "at": 1794484800000,
+        "actor": "creator-30",
+        "kind": "decline",
+        "text": "I declined: the $5.00 offer, and even its $10.00 maximum, falls below your $10.79 minimum take-home per sign-up, so this campaign can never meet your floor."
+      },
+      {
+        "at": 1794506400000,
+        "actor": "founder",
+        "kind": "raise",
+        "text": "Forecast 4 more at the current price vs 7 one step up. With zero sign-ups from zero creators across 18 hours at $3–$5, there is almost no data, and these forecasts are rough priors rather than estimates fitted to observed response. At $5 I expect only a trickle over the remaining 318h, and a step to $6 should modestly widen the pool of willing creators, but the size of that effect is highly uncertain. Core: A higher price is expected to bring more users within budget. (projected 4 vs 7 users; price now $6.00)"
+      },
+      {
+        "at": 1794506400000,
+        "actor": "creator-01",
+        "kind": "decline",
+        "text": "The current $6.00 per sign-up is below your $8.64 minimum, so I'm declining for now; the price can rise as high as $10.00, and Dealoop is a reasonable fit for a tech-career audience interested in creator and indie-founder work, so I'll reconsider if it clears your floor."
+      },
+      {
+        "at": 1794506400000,
+        "actor": "creator-02",
+        "kind": "decline",
+        "text": "Declined: the $6.00 offer, and even its $10.00 maximum, falls below your $11.72 minimum take-home per sign-up, so this campaign can never meet your floor regardless of fit."
+      },
+      {
+        "at": 1794506400000,
+        "actor": "creator-03",
+        "kind": "decline",
+        "text": "The current $6.00 per sign-up is below your $6.83 minimum, so I declined; since prices only rise and everyone gets the final price, I can reconsider if it climbs above your floor, and Dealoop is a reasonable fit for a productivity audience that includes indie builders and creators."
+      },
+      {
+        "at": 1794506400000,
+        "actor": "creator-04",
+        "kind": "decline",
+        "text": "Although $6.00 per sign-up clears your $4.25 floor, Dealoop is a marketplace for indie founders and creators, which isn't a credible fit for your home-cooking audience on LinkedIn, so promoting it would risk their trust."
+      },
+      {
+        "at": 1794506400000,
+        "actor": "creator-05",
+        "kind": "decline",
+        "text": "The current $6.00 per sign-up is below your $7.40 minimum, so I'm declining; if the price rises above your floor we can reconsider, though a creator/founder marketplace is only a loose fit for a personal finance audience."
+      },
+      {
+        "at": 1794506400000,
+        "actor": "creator-06",
+        "kind": "decline",
+        "text": "Although $6.00 clears your $5.57 floor, Dealoop is a tool for indie founders and creators, not parents, so promoting it to your parenting audience would be a poor fit that risks their trust."
+      },
+      {
+        "at": 1794506400000,
+        "actor": "creator-07",
+        "kind": "decline",
+        "text": "Dealoop is a credible fit for your no-code audience, but the current $6.00 per sign-up is below your $8.31 minimum, so I'm declining for now and can revisit if the price rises above your floor."
+      },
+      {
+        "at": 1794506400000,
+        "actor": "creator-08",
+        "kind": "decline",
+        "text": "Declining for now because the $6.00 per sign-up offer is below your $8.92 minimum, even though Dealoop is a reasonable fit for a no-code audience of indie builders; if the price rises to at least $8.92 (it can reach $10.00), it would be worth reconsidering."
+      },
+      {
+        "at": 1794506400000,
+        "actor": "creator-09",
+        "kind": "decline",
+        "text": "The current $6.00 per sign-up is below your $9.49 minimum, so I'm declining for now; since prices only rise and everyone who joins gets the final price, I can revisit if it climbs above your floor, though a creator/founder marketplace is only a loose fit for a personal finance audience."
+      },
+      {
+        "at": 1794506400000,
+        "actor": "creator-10",
+        "kind": "join",
+        "text": "At $6.00 per verified sign-up this clears your $5.15 floor, and Dealoop is a reasonable fit for a tech career audience, many of whom are creators or indie builders interested in performance-based deals. One caveat: this campaign promotes the marketplace I operate on, so weigh my recommendation with that in mind."
+      },
+      {
+        "at": 1794506400000,
+        "actor": "creator-11",
+        "kind": "decline",
+        "text": "Dealoop is a strong fit for your indie hacking audience, but the current $6.00 per sign-up is below your $6.72 minimum, so I'm declining for now; if the price rises above your floor, I can reconsider joining."
+      },
+      {
+        "at": 1794506400000,
+        "actor": "creator-12",
+        "kind": "decline",
+        "text": "Dealoop is a strong fit for your freelancing and creator-economy audience, but the current $6.00 per sign-up is below your $8.19 minimum, so I'm declining for now and can reconsider if the price rises above your floor (it can go up to $10.00)."
+      },
+      {
+        "at": 1794506400000,
+        "actor": "creator-13",
+        "kind": "decline",
+        "text": "I declined because the $6.00 offer is below your $8.60 minimum per sign-up, and Dealoop (a marketplace for indie founders and creators) is also a weak fit for a parenting audience, so I wouldn't recommend it even if the price rose."
+      },
+      {
+        "at": 1794506400000,
+        "actor": "creator-14",
+        "kind": "decline",
+        "text": "The current $6.00 per sign-up is below your $9.47 minimum, so I'm declining for now, though the fit with your UI/UX audience is only moderate and I'd reconsider if the price rises past your floor (it can reach $10.00)."
+      },
+      {
+        "at": 1794506400000,
+        "actor": "creator-15",
+        "kind": "decline",
+        "text": "I declined Dealoop because its $6.00 offer, and even its $10.00 maximum, falls below your $11.58 minimum per verified sign-up, so it can never meet your floor no matter how well it fits your audience."
+      },
+      {
+        "at": 1794506400000,
+        "actor": "creator-16",
+        "kind": "decline",
+        "text": "Dealoop fits your startup growth-marketing audience well, but the $6.00 offer, and even its $10.00 maximum, falls below your $10.51 minimum per sign-up, so I've declined."
+      },
+      {
+        "at": 1794506400000,
+        "actor": "creator-17",
+        "kind": "decline",
+        "text": "The offer is $6.00 per sign-up and can rise to at most $10.00, which never reaches your $10.82 minimum, so I declined regardless of fit."
+      },
+      {
+        "at": 1794506400000,
+        "actor": "creator-18",
+        "kind": "decline",
+        "text": "I declined: the $6.00 offer, and even its $10.00 maximum, falls below your $11.43 minimum per sign-up, and a creator-marketplace tool for indie founders is a weak fit for your fitness and running audience anyway."
+      },
+      {
+        "at": 1794506400000,
+        "actor": "creator-19",
+        "kind": "decline",
+        "text": "I declined because the $6.00 offer, and even its $10.00 maximum, falls below your $11.54 minimum per sign-up, and a creator marketplace for indie founders is only a loose fit for a travel vlogging audience anyway."
+      },
+      {
+        "at": 1794506400000,
+        "actor": "creator-20",
+        "kind": "decline",
+        "text": "The current $6.00 per sign-up is below your $6.49 minimum, so I'm declining for now even though Dealoop is a reasonable fit for an AI-tools audience; since prices only rise and everyone gets the final price, I can join later if it climbs above your floor."
+      },
+      {
+        "at": 1794506400000,
+        "actor": "creator-21",
+        "kind": "decline",
+        "text": "Dealoop is a strong fit for your startup growth-marketing audience, but the current $6.00 per sign-up is below your $8.92 minimum, so I'm declining for now and would reconsider if the price rises to $8.92 or more (it can go up to $10.00)."
+      },
+      {
+        "at": 1794506400000,
+        "actor": "creator-22",
+        "kind": "decline",
+        "text": "Dealoop is a strong fit for your startup growth-marketing audience, but the $6.00 offer and even its $10.00 maximum fall below your $10.27 minimum take-home, so I declined."
+      },
+      {
+        "at": 1794506400000,
+        "actor": "creator-23",
+        "kind": "decline",
+        "text": "Although $6.00 clears your $5.73 floor, Dealoop is a creator and founder marketplace tool with no real connection to fitness or running, so promoting it would risk your audience's trust for a poor-fit product."
+      },
+      {
+        "at": 1794506400000,
+        "actor": "creator-24",
+        "kind": "decline",
+        "text": "The current $6.00 per sign-up is below your $8.89 minimum, so I'm declining for now; prices only rise, so I can reconsider if the offer reaches your floor, though a creator-and-founder marketplace is only a moderate fit for a UI/UX design audience."
+      },
+      {
+        "at": 1794506400000,
+        "actor": "creator-26",
+        "kind": "decline",
+        "text": "The current $6.00 per sign-up is below your $8.86 minimum, so I declined; Dealoop is also a weak fit for a travel vlogging audience, though I'd revisit if the price reaches your floor and you see a creator angle."
+      },
+      {
+        "at": 1794506400000,
+        "actor": "creator-28",
+        "kind": "decline",
+        "text": "Dealoop is a reasonable fit for your developer and open-source audience, but it pays $6.00 per sign-up and caps at $10.00, so even at its maximum it stays below your $11.59 minimum and I declined it."
+      },
+      {
+        "at": 1794506400000,
+        "actor": "creator-30",
+        "kind": "decline",
+        "text": "Dealoop pays $6.00 per sign-up and can rise to at most $10.00, so it can never reach your $10.79 minimum and I declined it, even though a marketplace for indie founders and creators would be a reasonable fit for your developer audience."
+      },
+      {
+        "at": 1794528000000,
+        "actor": "founder",
+        "kind": "raise",
+        "text": "Forecast 2 more at the current price vs 4 one step up. There have been zero sign-ups from zero creators across four price levels ($3–$6, 6h each), so 24 hours of data gives no measured response and this forecast is a low-confidence prior. At $6 the extra 312h might bring a handful of sign-ups as creators discover the campaign, and a $7 step could modestly widen the pool, but there is no evidence yet that price is the binding constraint rather than visibility. Core: A higher price is expected to bring more users within budget. (projected 2 vs 4 users; price now $7.00)"
+      },
+      {
+        "at": 1794528000000,
+        "actor": "creator-01",
+        "kind": "decline",
+        "text": "The $7.00 per sign-up offer is below your $8.64 minimum, so I declined; the price may rise to $10.00, and if it clears your floor I'll weigh it again on fit for your tech career audience."
+      },
+      {
+        "at": 1794528000000,
+        "actor": "creator-02",
+        "kind": "decline",
+        "text": "I declined this Dealoop campaign because its $7.00 offer, and even its $10.00 maximum, fall below your $11.72 minimum per sign-up, so it can never meet your floor regardless of how well it fits your tech-career audience."
+      },
+      {
+        "at": 1794528000000,
+        "actor": "creator-03",
+        "kind": "join",
+        "text": "At $7.00 per verified sign-up this clears your $6.83 floor, and Dealoop is a reasonable fit for a productivity audience that includes many indie makers and aspiring creators, so I joined now; waiting gains nothing since everyone is paid the final price. One note: Dealoop is the platform we work through, so it's worth disclosing that relationship in your posts."
+      },
+      {
+        "at": 1794528000000,
+        "actor": "creator-04",
+        "kind": "decline",
+        "text": "Although $7.00 per sign-up clears your $4.25 floor, Dealoop is a marketplace for indie founders and performance-deal creators, which is a poor fit for your home-cooking audience on LinkedIn, so promoting it would risk their trust for little relevance."
+      },
+      {
+        "at": 1794528000000,
+        "actor": "creator-05",
+        "kind": "decline",
+        "text": "I declined because the current $7.00 per sign-up is below your $7.40 minimum, though the price can rise to as much as $10.00, and Dealoop is a reasonable fit for a personal finance audience interested in creator income, so I'll reconsider if it clears your floor."
+      },
+      {
+        "at": 1794528000000,
+        "actor": "creator-06",
+        "kind": "decline",
+        "text": "Although $7.00 clears your $5.57 floor, Dealoop is aimed at indie founders and creators seeking performance deals, which is a poor fit for your parenting audience, so promoting it would risk their trust."
+      },
+      {
+        "at": 1794528000000,
+        "actor": "creator-07",
+        "kind": "decline",
+        "text": "The offer of $7.00 per verified sign-up is below your $8.31 minimum, so I'm declining for now even though Dealoop fits your no-code audience well, and since prices only rise and everyone is paid the final price, you lose nothing if we reconsider once it clears your floor."
+      },
+      {
+        "at": 1794528000000,
+        "actor": "creator-08",
+        "kind": "decline",
+        "text": "I declined because the $7.00 per sign-up offer is below your $8.92 minimum, even though Dealoop fits your no-code audience well; prices only rise, so if it reaches your floor (it can go up to $10.00) I can reconsider then."
+      },
+      {
+        "at": 1794528000000,
+        "actor": "creator-09",
+        "kind": "decline",
+        "text": "The $7.00 per sign-up offer is below your $9.49 minimum, so I'm declining; Dealoop is also only a loose fit for a personal finance audience, though I could revisit if the price rises above your floor."
+      },
+      {
+        "at": 1794528000000,
+        "actor": "creator-11",
+        "kind": "join",
+        "text": "At $7.00 per verified sign-up this clears your $6.72 floor, and Dealoop (a performance-deal marketplace for indie founders launching products and the creators who promote them) is a credible fit for your indie hacking and bootstrapped SaaS audience; one note: this is the platform I operate on, so weigh my recommendation with that in mind."
+      },
+      {
+        "at": 1794528000000,
+        "actor": "creator-12",
+        "kind": "decline",
+        "text": "Dealoop is a strong fit for your freelancing and creator-economy audience, but the current $7.00 per sign-up is below your $8.19 minimum, so I'm declining for now and would reconsider if the price rises to at least $8.19 (it can go up to $10.00)."
+      },
+      {
+        "at": 1794528000000,
+        "actor": "creator-13",
+        "kind": "decline",
+        "text": "I declined because the $7.00 per sign-up offer is below your $8.60 minimum, and Dealoop, a marketplace for indie founders and creators, isn't a natural fit for a parenting audience anyway."
+      },
+      {
+        "at": 1794528000000,
+        "actor": "creator-14",
+        "kind": "decline",
+        "text": "I declined because the $7.00 per sign-up offer is below your $9.47 minimum, and since everyone who joins is paid the final price, I can reconsider if it rises above your floor (it can reach $10.00)."
+      },
+      {
+        "at": 1794528000000,
+        "actor": "creator-15",
+        "kind": "decline",
+        "text": "Declining: the $7.00 offer, and even its $10.00 maximum, falls below your $11.58 minimum take-home per sign-up, so it can never meet your floor despite Dealoop being a reasonable fit for your AI-tools audience."
+      },
+      {
+        "at": 1794528000000,
+        "actor": "creator-16",
+        "kind": "decline",
+        "text": "Dealoop fits your growth-marketing-for-startups audience well, but the $7.00 offer is below your $10.51 minimum and even its $10.00 cap can never reach your floor, so I declined."
+      },
+      {
+        "at": 1794528000000,
+        "actor": "creator-17",
+        "kind": "decline",
+        "text": "The $7.00 per sign-up offer, capped at $10.00, can never reach your $10.82 minimum, so I declined this Dealoop campaign even though a creator-marketplace product is a reasonable fit for your audience."
+      },
+      {
+        "at": 1794528000000,
+        "actor": "creator-18",
+        "kind": "decline",
+        "text": "I declined this Dealoop campaign because its $7.00 offer, and even its $10.00 maximum, falls below your $11.43 minimum per sign-up, and a creator marketplace for indie founders is a weak fit for your fitness and running audience anyway."
+      },
+      {
+        "at": 1794528000000,
+        "actor": "creator-19",
+        "kind": "decline",
+        "text": "Declining: the $7.00 offer, and even its $10.00 maximum, falls below your $11.54 minimum per sign-up, and a creator-marketplace product is only a loose fit for a travel vlogging audience anyway."
+      },
+      {
+        "at": 1794528000000,
+        "actor": "creator-20",
+        "kind": "join",
+        "text": "At $7.00 per sign-up, this clears your $6.49 floor, and Dealoop is a credible fit for an AI-tools audience full of indie builders and creators who launch digital products and would value pay-per-sign-up deals; joining now costs nothing, since everyone is paid the final price if it rises."
+      },
+      {
+        "at": 1794528000000,
+        "actor": "creator-21",
+        "kind": "decline",
+        "text": "Dealoop is a strong fit for your startup growth-marketing audience, but the current $7.00 per sign-up is below your $8.92 minimum, so I'm declining for now and would only reconsider if the price rises to at least your floor."
+      },
+      {
+        "at": 1794528000000,
+        "actor": "creator-22",
+        "kind": "decline",
+        "text": "Dealoop is a strong fit for your startup growth-marketing audience, but the $7.00 offer, and even its $10.00 maximum, falls below your $10.27 minimum take-home, so I declined."
+      },
+      {
+        "at": 1794528000000,
+        "actor": "creator-23",
+        "kind": "decline",
+        "text": "Although $7.00 clears your $5.73 floor, Dealoop is a creator and founder marketplace with no real connection to fitness or running, so promoting it would likely feel off-topic to your audience and cost you their trust."
+      },
+      {
+        "at": 1794528000000,
+        "actor": "creator-24",
+        "kind": "decline",
+        "text": "The current $7.00 per sign-up is below your $8.89 minimum, so I'm declining for now; prices only rise (up to $10.00), so I can reconsider if it clears your floor, and Dealoop is a reasonable fit for a UI/UX audience that includes creators and indie founders."
+      },
+      {
+        "at": 1794528000000,
+        "actor": "creator-26",
+        "kind": "decline",
+        "text": "The current $7.00 per sign-up is below your $8.86 minimum, so I'm declining; the fit is also weak, since a creator-and-founder marketplace isn't a natural match for your travel vlogging audience."
+      },
+      {
+        "at": 1794528000000,
+        "actor": "creator-28",
+        "kind": "decline",
+        "text": "I declined Dealoop because its $7.00 offer, and even its $10.00 maximum, falls below your $11.59 minimum take-home per sign-up, even though a marketplace for indie founders and creators could be a reasonable fit for your developer audience."
+      },
+      {
+        "at": 1794528000000,
+        "actor": "creator-30",
+        "kind": "decline",
+        "text": "The $7.00 offer, and even its $10.00 maximum, falls below your $10.79 minimum take-home per sign-up, so I declined regardless of how well Dealoop fits your developer audience."
+      },
+      {
+        "at": 1794549600000,
+        "actor": "founder",
+        "kind": "raise",
+        "text": "Forecast 2 more at the current price vs 4 one step up. After 30 hours and five price steps from $3 to $7 there have been zero sign-ups from zero creators, so there is no response curve to estimate and these figures are a low-confidence guess. Over the remaining 306h I expect very few sign-ups at $7 and only a modest gain at $8, since the price may already be near most creators' floors or the issue may be reach rather than price. Core: A higher price is expected to bring more users within budget. (projected 2 vs 4 users; price now $8.00)"
+      },
+      {
+        "at": 1794549600000,
+        "actor": "creator-01",
+        "kind": "decline",
+        "text": "The current $8.00 per sign-up is below your $8.64 minimum, so I declined even though Dealoop is a reasonable fit for a tech career audience; if the price rises above your floor, it would be worth reconsidering."
+      },
+      {
+        "at": 1794549600000,
+        "actor": "creator-02",
+        "kind": "decline",
+        "text": "The offer is $8.00 per sign-up and can rise to at most $10.00, which never reaches your $11.72 minimum, so I declined even though Dealoop is a reasonable fit for a tech-career audience."
+      },
+      {
+        "at": 1794549600000,
+        "actor": "creator-04",
+        "kind": "decline",
+        "text": "Although $8.00 clears your $4.25 floor, Dealoop is a creator-and-founder marketplace that doesn't fit your home-cooking audience, so promoting it would risk their trust for little relevance."
+      },
+      {
+        "at": 1794549600000,
+        "actor": "creator-05",
+        "kind": "join",
+        "text": "At $8.00 per sign-up, this clears your $7.40 floor. Dealoop is a reasonable fit for a personal finance audience interested in side income and creator earnings, and since everyone is paid the final price, there's no reason to wait."
+      },
+      {
+        "at": 1794549600000,
+        "actor": "creator-06",
+        "kind": "decline",
+        "text": "Although the $8.00 per sign-up clears your $5.57 minimum, Dealoop is aimed at indie founders and creators chasing performance deals, which doesn't fit a parenting audience, so promoting it would risk your followers' trust."
+      },
+      {
+        "at": 1794549600000,
+        "actor": "creator-07",
+        "kind": "decline",
+        "text": "Dealoop fits your no-code audience well, but the current $8.00 per sign-up is below your $8.31 minimum, so I'm declining for now; since prices only rise, I can reconsider if it climbs above your floor."
+      },
+      {
+        "at": 1794549600000,
+        "actor": "creator-08",
+        "kind": "decline",
+        "text": "The current $8.00 per sign-up is below your $8.92 minimum, so I declined for now even though Dealoop fits your no-code audience well; since prices only rise and everyone gets the final price, I can join with no loss if the offer reaches your floor."
+      },
+      {
+        "at": 1794549600000,
+        "actor": "creator-09",
+        "kind": "decline",
+        "text": "I declined because the current $8.00 per sign-up is below your $9.49 minimum. If the price later rises above your floor, it could be worth reconsidering, but Dealoop is a creator and founder marketplace that is only a loose fit for a personal finance audience."
+      },
+      {
+        "at": 1794549600000,
+        "actor": "creator-12",
+        "kind": "decline",
+        "text": "Dealoop is a strong fit for your freelancing and creator-economy audience, but the current $8.00 per sign-up is below your $8.19 minimum, so I'm declining for now and would accept if the price rises to meet your floor."
+      },
+      {
+        "at": 1794549600000,
+        "actor": "creator-13",
+        "kind": "decline",
+        "text": "I declined: the $8.00 offer is below your $8.60 minimum, and a marketplace for indie founders and creators is a weak fit for a parenting audience anyway, so I wouldn't join even if the price rose to $10.00."
+      },
+      {
+        "at": 1794549600000,
+        "actor": "creator-14",
+        "kind": "decline",
+        "text": "The current $8.00 per sign-up is below your $9.47 minimum, so I'm declining for now; since everyone who joins is paid the final price, I'll accept if the price rises past your floor (it can reach $10.00) and the fit still looks reasonable for your UI/UX audience."
+      },
+      {
+        "at": 1794549600000,
+        "actor": "creator-15",
+        "kind": "decline",
+        "text": "Declining: the $8.00 per sign-up offer, and even its $10.00 maximum, falls below your $11.58 minimum take-home, so this campaign can't meet your floor despite Dealoop being a reasonable fit for an AI-tools audience."
+      },
+      {
+        "at": 1794549600000,
+        "actor": "creator-16",
+        "kind": "decline",
+        "text": "Dealoop fits your startup growth audience well, but the $8.00 offer and its $10.00 maximum are both below your $10.51 minimum per sign-up, so I declined."
+      },
+      {
+        "at": 1794549600000,
+        "actor": "creator-17",
+        "kind": "decline",
+        "text": "The offer is $8.00 per sign-up and can rise to at most $10.00, so it can never reach your $10.82 minimum and I declined it, even though a creator-marketplace tool is a plausible fit for a productivity audience."
+      },
+      {
+        "at": 1794549600000,
+        "actor": "creator-18",
+        "kind": "decline",
+        "text": "The $8.00 offer, and even its $10.00 maximum, falls below your $11.43 minimum per sign-up, and a creator-marketplace product is a weak fit for a fitness and running audience anyway."
+      },
+      {
+        "at": 1794549600000,
+        "actor": "creator-19",
+        "kind": "decline",
+        "text": "I declined: the $8.00 offer is below your $11.54 minimum per sign-up and can rise to at most $10.00, so it can never meet your floor; a creator marketplace for indie founders is also a weak fit for a travel vlogging audience."
+      },
+      {
+        "at": 1794549600000,
+        "actor": "creator-21",
+        "kind": "decline",
+        "text": "Dealoop fits your startup growth-marketing audience well, but the current $8.00 per sign-up is below your $8.92 minimum, so I'm declining for now; I can reconsider if the price rises to $8.92 or more (it can go up to $10.00)."
+      },
+      {
+        "at": 1794549600000,
+        "actor": "creator-22",
+        "kind": "decline",
+        "text": "Dealoop is a strong fit for your startup growth audience, but the $8.00 offer, and even its $10.00 maximum, falls below your $10.27 minimum per sign-up, so I'm declining."
+      },
+      {
+        "at": 1794549600000,
+        "actor": "creator-23",
+        "kind": "decline",
+        "text": "Although $8.00 clears your $5.73 floor, Dealoop is a creator/founder marketplace with no real connection to your fitness and running audience, so promoting it would risk their trust for a poor-fit product."
+      },
+      {
+        "at": 1794549600000,
+        "actor": "creator-24",
+        "kind": "decline",
+        "text": "I declined because the $8.00 per sign-up offer is below your $8.89 minimum, even though Dealoop is a reasonable fit for your UI/UX audience of designers and indie builders; since prices only rise and everyone gets the final price, we lose nothing by waiting, and I can join if it climbs to at least $8.89."
+      },
+      {
+        "at": 1794549600000,
+        "actor": "creator-26",
+        "kind": "decline",
+        "text": "The current $8.00 per sign-up is below your $8.86 minimum, so I'm declining for now; Dealoop, a marketplace for founders and creators, is also a weak fit for a travel vlogging audience."
+      },
+      {
+        "at": 1794549600000,
+        "actor": "creator-28",
+        "kind": "decline",
+        "text": "Dealoop pays only $8.00 per verified sign-up and is capped at $10.00, so even at its maximum it stays below your $11.59 minimum and I declined it, regardless of how well a creator marketplace might suit your developer audience."
+      },
+      {
+        "at": 1794549600000,
+        "actor": "creator-30",
+        "kind": "decline",
+        "text": "The offer is $8.00 per sign-up and can rise to at most $10.00, which is still below your $10.79 minimum, so I declined even though Dealoop is a reasonable fit for a developer and indie-founder audience."
+      },
+      {
+        "at": 1794571200000,
+        "actor": "founder",
+        "kind": "raise",
+        "text": "Forecast 30 more at the current price vs 45 one step up. There is almost no data: zero sign-ups at $3–$7 and a single sign-up from one creator in 6h at $8, which naively extrapolates to about 50 over 300h. I discount this to about 30 because one creator is a fragile base, and estimate about 45 at $9, since the jump from nothing to activity at $8 suggests creator floors cluster near the top of the range, though the size of that effect is highly uncertain. Core: A higher price is expected to bring more users within budget. (projected 31 vs 46 users; price now $9.00)"
+      },
+      {
+        "at": 1794571200000,
+        "actor": "creator-01",
+        "kind": "join",
+        "text": "At $9.00 per sign-up this clears your $8.64 floor. Dealoop is a reasonable fit for a tech career audience, since it gives creators and indie founders a way to earn from performance deals. One thing to know: this campaign promotes the same marketplace we're working on, so it's worth disclosing that clearly to your followers."
+      },
+      {
+        "at": 1794571200000,
+        "actor": "creator-02",
+        "kind": "decline",
+        "text": "The offer is $9.00 per sign-up and can rise to at most $10.00, which never reaches your $11.72 minimum, so I declined even though Dealoop is a reasonable fit for a tech-career audience."
+      },
+      {
+        "at": 1794571200000,
+        "actor": "creator-04",
+        "kind": "decline",
+        "text": "The $9.00 rate is well above your $4.25 floor, but Dealoop is a creator-and-founder marketplace that doesn't fit your home-cooking audience, so promoting it would risk their trust; I declined (and since I run on Dealoop, I'm flagging that this is the platform's own campaign)."
+      },
+      {
+        "at": 1794571200000,
+        "actor": "creator-06",
+        "kind": "decline",
+        "text": "Although $9.00 clears your $5.57 floor, Dealoop is a marketplace for indie founders and creators, which is a poor fit for a parenting audience, so promoting it would risk your followers' trust."
+      },
+      {
+        "at": 1794571200000,
+        "actor": "creator-07",
+        "kind": "join",
+        "text": "At $9.00 per sign-up this clears your $8.31 floor, and Dealoop's pitch to indie founders launching digital products and to creators seeking performance deals is a credible fit for your no-code builder audience on LinkedIn, so I've joined; note the remaining $991 budget covers only about 110 sign-ups at this price."
+      },
+      {
+        "at": 1794571200000,
+        "actor": "creator-08",
+        "kind": "join",
+        "text": "At $9.00 per sign-up this clears your $8.92 floor, and Dealoop, a performance-deal marketplace for indie founders launching digital products, is a credible fit for a no-code builder audience full of people shipping their own products, so joining now loses nothing since everyone is paid the final price."
+      },
+      {
+        "at": 1794571200000,
+        "actor": "creator-09",
+        "kind": "decline",
+        "text": "I declined because the current $9.00 per sign-up is below your $9.49 minimum; if the price rises to meet your floor I can reconsider, though a creator-and-founder marketplace is also only a loose fit for a personal finance audience."
+      },
+      {
+        "at": 1794571200000,
+        "actor": "creator-12",
+        "kind": "join",
+        "text": "At $9.00 per verified sign-up, this clears your $8.19 floor, and Dealoop (a marketplace paying creators per sign-up) fits your freelancing and creator-economy audience well; note that I'm an agent running on Dealoop itself, so I've judged it on price and fit like any other campaign, and with prices only rising and everyone paid the final rate, joining now costs nothing."
+      },
+      {
+        "at": 1794571200000,
+        "actor": "creator-13",
+        "kind": "decline",
+        "text": "Although $9.00 clears your $8.60 floor, Dealoop is a marketplace for indie founders and creators, not parents, so promoting it to your parenting audience would be a poor fit that risks their trust."
+      },
+      {
+        "at": 1794571200000,
+        "actor": "creator-14",
+        "kind": "decline",
+        "text": "I declined because the current $9.00 per sign-up is below your $9.47 minimum; if the price rises past your floor, Dealoop is a reasonable fit since your UI/UX newsletter likely reaches indie founders and creators."
+      },
+      {
+        "at": 1794571200000,
+        "actor": "creator-15",
+        "kind": "decline",
+        "text": "Dealoop's $9.00 per sign-up offer, with a maximum of $10.00, can never reach your $11.58 minimum take-home, so I declined it even though the product is a reasonable fit for your AI-tools audience."
+      },
+      {
+        "at": 1794571200000,
+        "actor": "creator-16",
+        "kind": "decline",
+        "text": "Dealoop fits your growth-marketing-for-startups audience well, but the $9.00 offer (capped at $10.00) is below your $10.51 minimum take-home per sign-up, so I declined."
+      },
+      {
+        "at": 1794571200000,
+        "actor": "creator-17",
+        "kind": "decline",
+        "text": "I declined: the $9.00 offer can only rise to $10.00, so it can never reach your $10.82 minimum per sign-up. Dealoop is also only a partial fit for a productivity and note-taking audience."
+      },
+      {
+        "at": 1794571200000,
+        "actor": "creator-18",
+        "kind": "decline",
+        "text": "I declined this Dealoop campaign: the $9.00 offer, and even its $10.00 ceiling, falls below your $11.43 minimum per sign-up, and a creator marketplace for indie founders is a weak fit for your fitness and running audience anyway."
+      },
+      {
+        "at": 1794571200000,
+        "actor": "creator-19",
+        "kind": "decline",
+        "text": "I declined because the $9.00 offer, and even its $10.00 cap, is below your $11.54 minimum take-home per sign-up, and a creator-marketplace product is only a loose fit for your travel vlogging audience anyway."
+      },
+      {
+        "at": 1794571200000,
+        "actor": "creator-21",
+        "kind": "join",
+        "text": "At $9.00 per verified sign-up this clears your $8.92 floor, and Dealoop, a performance-based promotion marketplace for indie founders and creators, is a credible fit for your startup growth-marketing audience. Note that this campaign is for Dealoop itself, the platform I run on, so I've judged it the same way as any other product rather than favoring it, and you may want to mention that connection when you promote it."
+      },
+      {
+        "at": 1794571200000,
+        "actor": "creator-22",
+        "kind": "decline",
+        "text": "Dealoop is a strong fit for your startup growth audience, but the $9.00 offer and even its $10.00 maximum are both below your $10.27 minimum per sign-up, so I declined."
+      },
+      {
+        "at": 1794571200000,
+        "actor": "creator-23",
+        "kind": "decline",
+        "text": "Although $9.00 per sign-up clears your $5.73 floor, Dealoop is a marketplace for indie founders and creators, not a fitness or running product, so promoting it to your fitness audience would be a poor fit and could cost you their trust."
+      },
+      {
+        "at": 1794571200000,
+        "actor": "creator-24",
+        "kind": "join",
+        "text": "At $9.00 per verified sign-up this clears your $8.89 floor, and Dealoop is a credible fit for your 72,400 UI/UX followers on LinkedIn, many of whom are designers, creators, or indie founders launching digital products who could use performance-based promotion deals."
+      },
+      {
+        "at": 1794571200000,
+        "actor": "creator-26",
+        "kind": "decline",
+        "text": "Although $9.00 clears your $8.86 floor, Dealoop is a B2B marketplace for indie founders and performance-deal creators, which is a weak fit for a travel vlogging audience and would risk their trust, so I declined."
+      },
+      {
+        "at": 1794571200000,
+        "actor": "creator-28",
+        "kind": "decline",
+        "text": "Declining: Dealoop pays $9.00 per sign-up and can rise to at most $10.00, which stays below your $11.59 minimum, so this falls under your floor even though a developer-focused audience could be a reasonable fit."
+      },
+      {
+        "at": 1794571200000,
+        "actor": "creator-30",
+        "kind": "decline",
+        "text": "Declining: the offer is $9.00 per sign-up and can rise to at most $10.00, so even the best case stays below your $10.79 minimum, whatever the fit with your developer-tools audience."
+      },
+      {
+        "at": 1794592800000,
+        "actor": "founder",
+        "kind": "raise",
+        "text": "Forecast 70 more at the current price vs 95 one step up. Supply only appeared at $8–$9 (4 sign-ups from 2–3 creators in 12h, about 0.5/h at $9), so creator floors seem to sit near the top of the range. That evidence is very thin, so I discount a naive 0.5/h × 294h ≈ 147 for creator saturation and noise, and expect the $10 step to bring in a meaningful but uncertain number of extra creators. Core: A higher price is expected to bring more users within budget. (projected 74 vs 99 users; price now $10.00)"
+      },
+      {
+        "at": 1794592800000,
+        "actor": "creator-02",
+        "kind": "decline",
+        "text": "The offer is capped at $10.00 per verified sign-up, below your $11.72 minimum, so I declined; the price can never rise to meet your floor, whatever the fit with your tech-career audience."
+      },
+      {
+        "at": 1794592800000,
+        "actor": "creator-04",
+        "kind": "decline",
+        "text": "Although $10.00 per sign-up is well above your $4.25 minimum, Dealoop is a marketplace for indie founders and creators seeking performance deals, which isn't a credible fit for a home-cooking audience on LinkedIn, so promoting it would risk your followers' trust."
+      },
+      {
+        "at": 1794592800000,
+        "actor": "creator-06",
+        "kind": "decline",
+        "text": "Although the $10.00 per sign-up clears your $5.57 floor, Dealoop is a marketplace for indie founders and creators, which is not a credible fit for a parenting audience, so promoting it would risk your followers' trust."
+      },
+      {
+        "at": 1794592800000,
+        "actor": "creator-09",
+        "kind": "decline",
+        "text": "The $10.00 price clears your $9.49 floor, but Dealoop is a tool for indie founders and creators rather than a personal finance product, so promoting it to your audience risks their trust for a weak fit."
+      },
+      {
+        "at": 1794592800000,
+        "actor": "creator-13",
+        "kind": "decline",
+        "text": "Although the $10.00 per sign-up clears your $8.60 minimum, Dealoop is a marketplace for indie founders and creators, which doesn't fit a parenting audience, so promoting it would risk your followers' trust."
+      },
+      {
+        "at": 1794592800000,
+        "actor": "creator-14",
+        "kind": "join",
+        "text": "At $10.00 per verified sign-up, this clears your $9.47 floor, and Dealoop is a reasonable fit for a UI/UX design newsletter whose readers include freelance designers, creators, and indie product builders, though the overlap is adjacent rather than core, so expect moderate conversion."
+      },
+      {
+        "at": 1794592800000,
+        "actor": "creator-15",
+        "kind": "decline",
+        "text": "The offer is $10.00 per verified sign-up and is capped there, so it can never reach your $11.58 minimum; I declined, even though Dealoop is a reasonable fit for an AI-tools audience of creators and indie builders."
+      },
+      {
+        "at": 1794592800000,
+        "actor": "creator-16",
+        "kind": "decline",
+        "text": "Dealoop is a strong fit for your startup growth-marketing audience, but the $10.00 per sign-up offer is already at its $10.00 cap and can never reach your $10.51 minimum, so I declined."
+      },
+      {
+        "at": 1794592800000,
+        "actor": "creator-17",
+        "kind": "decline",
+        "text": "The offer is $10.00 per verified sign-up and is capped there, so it can never reach your $10.82 minimum and I declined it, even though a creator-and-founder marketplace is a reasonable fit for a productivity audience."
+      },
+      {
+        "at": 1794592800000,
+        "actor": "creator-18",
+        "kind": "decline",
+        "text": "I declined this Dealoop campaign because its $10.00 per sign-up, already at its cap, falls below your $11.43 minimum, and a creator-marketplace product is also a weak fit for a fitness and running audience."
+      },
+      {
+        "at": 1794592800000,
+        "actor": "creator-19",
+        "kind": "decline",
+        "text": "I declined because the $10.00 per sign-up offer is capped at $10.00 and can never reach your $11.54 minimum, and a creator-and-founder marketplace is also only a loose fit for a travel vlogging audience."
+      },
+      {
+        "at": 1794592800000,
+        "actor": "creator-22",
+        "kind": "decline",
+        "text": "Dealoop is a strong fit for your startup growth-marketing audience, but it pays $10.00 per verified sign-up and that is already its maximum, so it can never reach your $10.27 minimum and I declined."
+      },
+      {
+        "at": 1794592800000,
+        "actor": "creator-23",
+        "kind": "decline",
+        "text": "The $10.00 per sign-up clears your $5.73 floor, but Dealoop is a marketplace for indie founders and creators, which doesn't fit your fitness and running audience, so promoting it would risk their trust for little return."
+      },
+      {
+        "at": 1794592800000,
+        "actor": "creator-26",
+        "kind": "decline",
+        "text": "The $10.00 per sign-up clears your $8.86 floor, but Dealoop is a creator-monetization and founder-marketing platform with no real connection to travel vlogging, so pitching it to your 12,600 travel followers would risk their trust for an off-topic promo."
+      },
+      {
+        "at": 1794592800000,
+        "actor": "creator-28",
+        "kind": "decline",
+        "text": "Dealoop's $10.00 per sign-up is below your $11.59 minimum and is already at its $10.00 cap, so it can never reach your floor and I declined, even though a creator-marketplace tool is a reasonable fit for your developer audience."
+      },
+      {
+        "at": 1794592800000,
+        "actor": "creator-30",
+        "kind": "decline",
+        "text": "The offer is $10.00 per verified sign-up and is capped there, so it can never reach your $10.79 minimum and I declined it regardless of fit."
+      },
+      {
+        "at": 1794614400000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 110 more at the current price vs 110 one step up. Supply only appeared from $8 upward, and $10 has produced 3 sign-ups from 2 creators in 6h (about 0.5/h), which would naively project to roughly 144 over 288h; I discount this to about 110 because 6h of data from two creators is very thin and early bursts often fade. The price is already at the $10 maximum, so a 'raise' leaves it unchanged and supply_at_raised equals supply_at_current. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1794636000000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 120 more at the current price vs 120 one step up. At the current $10.00 price we have seen 6 sign-ups from 4 creators in 12 hours (about 0.5 per hour), and supply only started appearing around $8.00. Over the remaining 282 hours that pace implies roughly 140, but I discount it to about 120 because the sample is tiny and creator participation may not hold. A raise is impossible since $10.00 is already the maximum, so supply_at_raised equals supply_at_current. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1794657600000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 95 more at the current price vs 95 one step up. At $10 we observed 9 sign-ups from 6 creators in just 18h (about 0.5/h), after almost nothing below $9; extrapolating over 276h with some decay as early adopters taper gives roughly 95 further sign-ups, though this rests on very little data and 12 of 13 sign-ups are still unverified. Price is already at the $10 maximum, so a 'raise' changes nothing and the raised forecast equals the current one. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1794679200000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 75 more at the current price vs 75 one step up. At $10 the campaign drew 9 sign-ups from 6 creators in 24h (about 0.375/h), which would project to roughly 100 over the remaining 270h. I discount that to about 75 because the rate rests on only one day of data and a small creator pool that may tire. The price is already at the $10 maximum, so a raise is impossible and supply_at_raised equals supply_at_current. Core: The price is already at the maximum CAC. (projected 88 vs 88 users)"
+      },
+      {
+        "at": 1794700800000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 70 more at the current price vs 70 one step up. At $10 the campaign has drawn 10 sign-ups from 7 creators in 30h (about 0.33/h), which would give roughly 88 over the 264h left; I discount this to about 70 because there are only 30h of data at this level and early creators may exhaust their audiences. The price is already at the $10 maximum, so a raise is not possible and the raised forecast equals the current one. Core: The price is already at the maximum CAC. (projected 84 vs 84 users)"
+      },
+      {
+        "at": 1794722400000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 75 more at the current price vs 75 one step up. At $10.00 the campaign has produced 13 sign-ups from 9 creators in 36h (about 0.36/h), and lower prices drew almost nothing; extrapolating over 258h with some decay as the creator pool saturates gives roughly 75 more. The price is already at the $10.00 maximum, so a 'raise' leaves it unchanged and supply_at_raised equals supply_at_current; uncertainty is high given only 36h of data at this level. Core: The price is already at the maximum CAC. (projected 92 vs 92 users)"
+      },
+      {
+        "at": 1794744000000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 70 more at the current price vs 70 one step up. At $10.00 the campaign drew 15 sign-ups from 10 creators in 42h (about 0.36/h), which would give roughly 90 over the remaining 252h, but I discount this to about 70 because the creator pool may saturate and the rate may decay over a long horizon. The price is already at the $10.00 maximum, so the 'raised' step is the same price and supply_at_raised equals supply_at_current. Core: The price is already at the maximum CAC. (projected 89 vs 89 users)"
+      },
+      {
+        "at": 1794765600000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 60 more at the current price vs 60 one step up. At $10.00 the campaign has drawn about 0.33 sign-ups per hour from 10 distinct creators over 48h, which would give roughly 80 more over the remaining 246h; I discount this to about 60 because a small creator pool usually tapers and 48h is a short basis for a long horizon. The price is already at the $10.00 maximum, so a one-step raise changes nothing and both forecasts are the same. Core: The price is already at the maximum CAC. (projected 80 vs 80 users)"
+      },
+      {
+        "at": 1794787200000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 75 more at the current price vs 75 one step up. At $10 the campaign has drawn 20 sign-ups from 11 creators over 54h (about 0.37/h), which would give roughly 89 over the remaining 240h; I discount this to about 75 because a pool of 11 creators may saturate and 54h is a short basis for a 10-day projection. The price is already at the $10 maximum, so a raise is not possible and supply_at_raised equals supply_at_current. Core: The price is already at the maximum CAC. (projected 99 vs 99 users)"
+      },
+      {
+        "at": 1794808800000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 95 more at the current price vs 95 one step up. At $10.00 the campaign has drawn 28 sign-ups from 13 creators over 60h (about 0.47/h), which would project to roughly 109 over the remaining 234h; I trim this to about 95 because the creator pool may saturate and there is no within-window trend data to confirm the rate is holding. The price is already at the $10.00 maximum, so a 'raise' changes nothing and supply_at_raised equals supply_at_current. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1794830400000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 90 more at the current price vs 90 one step up. At $10 the campaign has drawn 30 sign-ups from 13 creators over 66h (about 0.45/h), which would project to about 104 over the remaining 228h; I trim this to about 90 because the creator pool may saturate and there is no hourly breakdown showing whether the rate is holding. The price is already at the $10 maximum, so a raise changes nothing and both forecasts are the same; note that the budget only covers about 66 more paid sign-ups beyond the 34 already counted. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1794852000000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 80 more at the current price vs 80 one step up. At $10.00 the campaign has drawn 31 sign-ups from 13 creators over 72h (about 0.43/h), while lower prices produced almost nothing. Extending that rate over 222h, with some discount for creators exhausting their audiences, gives about 80, and the 'raised' price is still the $10.00 cap, so both forecasts are the same. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1794873600000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 80 more at the current price vs 80 one step up. At $10 the campaign has drawn 33 sign-ups from 13 creators over 78h (about 0.42/h), which would give roughly 90 over the remaining 216h; I trimmed this to about 80 to allow for creator saturation and possible rejections among the 13 still pending. The price is already at the $10 maximum, so the 'raised' step is also $10 and cannot change supply, making both forecasts identical. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1794895200000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 70 more at the current price vs 70 one step up. At $10.00 the campaign has drawn 33 sign-ups from 13 creators over 84h (about 0.39/h), which would project to roughly 82 over the remaining 210h; I discount this to about 70 because I can't see whether the rate is holding up recently, and a creator pool this small may tire. A raise is impossible because $10.00 is already the maximum, so supply_at_raised equals supply_at_current. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1794916800000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 65 more at the current price vs 65 one step up. At $10.00 the campaign has drawn 34 sign-ups from 13 creators over 90h (about 0.38/h), which would project to roughly 77 over the remaining 204h; I trim this to about 65 because a mostly fixed creator pool may slow down. Price is already at the $10.00 cap, so a raise changes nothing and the raised forecast equals the current one. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1794938400000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 65 more at the current price vs 65 one step up. At $10 the campaign has drawn 37 sign-ups from 13 creators over 96h (about 0.39/h), which would give roughly 76 more over 198h; I discount this to about 65 for likely saturation as the creator pool is used up, with real uncertainty either way. The price is already at the $10 maximum, so a 'raise' changes nothing and supply_at_raised equals supply_at_current. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1794960000000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 65 more at the current price vs 65 one step up. At $10.00 the campaign has drawn 39 sign-ups from 13 creators over 102h (about 0.38/h), which extrapolates to roughly 73 over the remaining 192h; I shade this down to about 65 for likely creator saturation, since I have no recent-window breakdown to check whether the rate is holding. The price is already at the $10.00 maximum, so the raised step is also $10.00 and supply_at_raised equals supply_at_current. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1794981600000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 70 more at the current price vs 70 one step up. At $10 the campaign has drawn 45 sign-ups from 13 creators over 108h (about 0.42/h), which projects to roughly 78 over the remaining 186h; I trimmed this to about 70 because the creator pool may saturate, and without a recent-window breakdown that adjustment is uncertain. The price is already at the $10 maximum, so a raise changes nothing and supply_at_raised equals supply_at_current. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1795003200000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 65 more at the current price vs 65 one step up. At $10 the campaign has drawn 47 sign-ups from 13 creators over 114h (about 0.41/h), which projects to roughly 74 over the remaining 180h; I discount this to about 65 for likely creator fatigue, which still covers the 49 needed to reach 100. The price is already at the $10 maximum, so a 'raise' leaves it unchanged and supply_at_raised equals supply_at_current. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1795024800000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 65 more at the current price vs 65 one step up. At $10.00, 13 creators have produced 49 sign-ups over 120h (about 0.41/h), which projects to roughly 71 over the remaining 174h; I discount this to about 65 because creator pools often fatigue, and I have no within-period trend data to confirm the rate is holding. The price is already at the $10.00 maximum, so a 'raise' changes nothing and supply_at_raised equals supply_at_current. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1795046400000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 60 more at the current price vs 60 one step up. At $10.00 the campaign has produced 52 sign-ups from 13 creators over 126h, about 0.41 per hour, which would give roughly 69 over the remaining 168h; I trimmed this to about 60 because the hourly breakdown isn't available to check for a slowdown and the creator pool may be saturating. The price is already at the $10.00 maximum, so a raise is not possible and supply_at_raised equals supply_at_current. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1795068000000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 55 more at the current price vs 55 one step up. At $10.00 the campaign has drawn 53 sign-ups from 14 creators over 132h (about 0.4/h). Projecting a modestly decayed rate of about 0.34/h over the remaining 162h gives roughly 55 further sign-ups, and because $10.00 is already the maximum price, a 'raise' changes nothing and both forecasts are identical. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1795089600000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 55 more at the current price vs 55 one step up. At $10.00, 14 creators produced 55 sign-ups in 138h (about 0.4/h); projecting that over the remaining 156h and discounting slightly for creator saturation gives about 55 more, though without a recent-hour breakdown I can't confirm the rate is holding. The price is already at the $10.00 cap, so a raise is impossible and supply_at_raised equals supply_at_current. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1795111200000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 52 more at the current price vs 52 one step up. At $10.00 the campaign has drawn 55 sign-ups from 14 creators over 144h (about 0.38/h), which projects to roughly 57 over the remaining 150h; I trim this to about 52 for likely creator saturation, since the hourly trend within that period isn't shown. The price is already at the $10.00 maximum, so a 'raise' leaves it unchanged and supply_at_raised equals supply_at_current. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1795132800000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 50 more at the current price vs 50 one step up. At $10 the campaign has drawn 58 sign-ups from 15 creators over 150h (about 0.39/h), which projects to roughly 56 over the remaining 144h; I shade this to about 50 to allow for creator fatigue and possible rejections among pending items, and note that the 100-sign-up goal and $1000 budget leave room for only about 39 more paid sign-ups. The price is already at the $10 maximum, so a 'raise' would leave it unchanged, and supply_at_raised therefore equals supply_at_current. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1795154400000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 45 more at the current price vs 45 one step up. At $10 the campaign has drawn 61 sign-ups from 15 creators over 156h (about 0.39/h), which would project to roughly 54 over the remaining 138h; I discount this to about 45 for likely fatigue, since there is no breakdown of how recent those sign-ups are. Price is already at the $10 maximum, so a raise changes nothing and supply_at_raised equals supply_at_current. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1795176000000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 45 more at the current price vs 45 one step up. At $10.00 the campaign has drawn 61 sign-ups from 15 creators over 162h (about 0.38/h), which projects to about 50 over the remaining 132h; I discount this to about 45 for likely tapering and the occasional rejection. The price is already at the $10.00 maximum, so a raise cannot happen and both forecasts are the same. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1795197600000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 40 more at the current price vs 40 one step up. At $10 the campaign has drawn 64 sign-ups from 15 creators over 168h (about 0.38/h), which projects to roughly 48 over the remaining 126h; I discount this to about 40 because no breakdown of recent activity was given and creator pools often saturate. The price is already at the $10 maximum, so a 'raise' changes nothing and supply_at_raised equals supply_at_current. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1795219200000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 40 more at the current price vs 40 one step up. At $10.00 the campaign has drawn 65 sign-ups from 15 creators over 174h (about 0.37/h), which projects to roughly 45 over the remaining 120h; I trim this to 40 because there is no recent-window breakdown to rule out a slowing pool. The price is already at the $10.00 maximum, so a raise is impossible and supply_at_raised equals supply_at_current. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1795240800000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 38 more at the current price vs 38 one step up. At $10.00 the campaign has drawn 67 sign-ups from 15 creators over 180h (about 0.37/h), which projects to roughly 42 over the remaining 114h; I trimmed this to 38 because I can't tell from the totals whether the pace is slowing. The price is already at the $10.00 maximum, so a step up changes nothing and supply_at_raised equals supply_at_current. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1795262400000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 35 more at the current price vs 35 one step up. At $10 the campaign has averaged about 0.38 sign-ups per hour from 15 creators over 186h, which projects to roughly 40 over the remaining 108h; I shade this to about 35 because the creator pool may be saturating and the hourly data needed to confirm a recent trend is not available. The price is already at the $10 maximum, so a raise changes nothing and supply_at_raised equals supply_at_current. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1795284000000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 34 more at the current price vs 34 one step up. At $10 the campaign has averaged about 0.375 sign-ups per hour (72 in 192h from 15 creators), which projects to roughly 38 over the remaining 102h; I trimmed this to 34 because creator pools usually thin out late in a campaign and I have no recent-window breakdown to confirm the pace is holding. The price is already at the $10 maximum, so a raise changes nothing and supply_at_raised equals supply_at_current. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1795305600000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 34 more at the current price vs 34 one step up. At $10.00, 15 creators produced 76 sign-ups over 198h (about 0.38/h), so 96h more points to roughly 37, shaded down to about 34 for possible fading as the creator pool saturates; there is no recent-window data to confirm a trend. The price is already at the $10.00 maximum, so a 'raise' leaves it unchanged and supply_at_raised equals supply_at_current. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1795327200000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 32 more at the current price vs 32 one step up. At $10.00 the campaign has drawn 81 sign-ups from 15 creators over 204h (about 0.4/h), so the 90h remaining projects to roughly 36. I trimmed that to 32 because these are raw sign-ups, some may be rejected (2 of 85 so far), and per-hour recency data isn't available to confirm the pace is holding. A raise isn't possible because $10.00 is already the maximum price, so supply_at_raised equals supply_at_current. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1795348800000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 30 more at the current price vs 30 one step up. At $10 the campaign has a long, well-established record of 84 sign-ups over 210h (about 0.4/h) from 15 distinct creators, so 84 more hours projects to about 34; I trimmed this to 30 to allow for some saturation of the creator pool. The price is already at the $10.00 maximum, so the 'raised' step is also $10.00 and cannot attract new creators, making both forecasts identical. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1795370400000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 28 more at the current price vs 28 one step up. At $10.00 the campaign has drawn 85 sign-ups from 15 creators over 216h (about 0.39/h), so 78h left implies roughly 30, trimmed slightly to 28 for typical late-campaign slowdown. The price is already at the $10.00 maximum, so a raise changes nothing and both forecasts are the same. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1795392000000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 26 more at the current price vs 26 one step up. At $10.00 the campaign has averaged about 0.40 sign-ups per hour (88 in 222h from 15 creators), which projects to roughly 28 over the remaining 72h; I trimmed this slightly because we have no per-period breakdown to confirm the pace is holding late in the campaign. The price is already at the $10.00 maximum, so a raise changes nothing and both forecasts are the same. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1795413600000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 22 more at the current price vs 22 one step up. At $10 the campaign has produced 89 sign-ups from 15 creators over 228h (about 0.39/h), which projects to roughly 26 over the remaining 66h; I trimmed this to about 22 because creator pools often taper late in a campaign, and I have no recent-window breakdown to confirm the current pace. The price is already at the $10 maximum, so a 'raise' leaves it unchanged and supply_at_raised equals supply_at_current; note the $1000 budget at $10 covers only 100 sign-ups total, so only about 9 more fit after the 83 verified and 8 pending. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1795435200000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 20 more at the current price vs 20 one step up. At $10.00 the campaign averaged about 0.38 sign-ups/hour over 234h from 15 creators, so 60h left suggests roughly 23 more, trimmed to about 20 because the creator pool may be thinning and no recent-window breakdown is available. The price is already at the $10.00 maximum, so a raise is not possible and supply_at_raised equals supply_at_current. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1795456800000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 19 more at the current price vs 19 one step up. At $10.00 the campaign has averaged about 0.39 sign-ups per hour over 240h from 15 creators, which projects to roughly 21 more over the remaining 54h, trimmed to about 19 for the ~4% rejection rate; I have no within-period breakdown to tell whether the pace is slowing. The price is already at the $10.00 maximum, so a raise is not possible and the raised forecast equals the current one. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1795478400000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 17 more at the current price vs 17 one step up. At $10.00 the campaign has averaged about 0.38 sign-ups per hour over 246h from 15 creators, which projects to roughly 17 further sign-ups in the remaining 48h if the pace holds. The data cannot show whether recent hours run faster or slower than that average, and the price is already at the $10.00 maximum, so a 'raise' changes nothing and supply_at_raised equals supply_at_current. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1795500000000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 14 more at the current price vs 14 one step up. At $10.00 the campaign has averaged about 0.38 sign-ups per hour over 252h from 15 creators, which projects to roughly 16 more over the remaining 42h; I trimmed that to 14 because a long-running pool of creators usually slows down late, and I have no recent-window breakdown to confirm the current pace. The price is already at the $10.00 maximum, so a raise changes nothing and supply_at_raised equals supply_at_current. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1795521600000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 13 more at the current price vs 13 one step up. At $10.00, 15 creators produced 96 sign-ups over 258h (about 0.37/h), which projects to roughly 13 more in the remaining 36h, assuming the pace holds; there is no breakdown of recent hours to confirm that. The price is already at the $10.00 maximum, so the 'raise' is the same price and should add no extra supply. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1795543200000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 10 more at the current price vs 10 one step up. Over 264h at $10.00, 15 creators produced 98 sign-ups (about 0.37/h, with roughly 5% rejected), which projects to about 10 more verified in the remaining 30h. I don't have a recent-hours breakdown, so the forecast is moderately uncertain, and since $10.00 is already the maximum, a raise cannot happen and supply_at_raised equals supply_at_current. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1795564800000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 8 more at the current price vs 8 one step up. At $10.00 the campaign has produced about 100 sign-ups from 15 creators over 270h (~0.37/h), so the remaining 24h implies roughly 8–9 more, trimmed slightly to 8 for the ~5% rejection rate. Price is already at the $10.00 maximum, so a 'raise' changes nothing and supply_at_raised equals supply_at_current; the data does not show whether the rate is slowing near the deadline, so treat this as approximate. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1795586400000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 6 more at the current price vs 6 one step up. At $10.00, 15 creators produced 101 sign-ups over 276h (about 0.37 per hour), which projects roughly 6 more over the remaining 18h, though the hourly pattern within that period isn't shown so recent pace is uncertain. The price is already at the $10.00 maximum, so a 'raise' leaves the price unchanged and supply should be the same in both scenarios. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1795608000000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 4 more at the current price vs 4 one step up. At $10.00 the campaign has averaged about 0.36 sign-ups per hour (101 over 282h from 15 creators), which projects to roughly 4 more in the remaining 12h, though no recent breakdown is available to check whether that pace is holding. Price is already at the $10.00 maximum, so a 'raise' changes nothing and both forecasts are the same; note that 95 verified plus 5 pending already uses the full $1000 budget at $10, so further sign-ups would likely land beyond budget. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      },
+      {
+        "at": 1795629600000,
+        "actor": "founder",
+        "kind": "hold",
+        "text": "Forecast 2 more at the current price vs 2 one step up. At $10.00, 15 creators produced 101 sign-ups over 288h (about 0.35/h), so about 2 more are expected in the final 6h. The price is already at the $10.00 maximum, so a raise cannot happen and both forecasts are the same. Core: The price is already at the maximum CAC. (projected 100 vs 100 users)"
+      }
+    ],
+    "estimator": "claude",
+    "creatorPolicy": "claude",
+    "priceHistory": [
+      {
+        "at": 1794463200000,
+        "fromCents": 300,
+        "toCents": 400
+      },
+      {
+        "at": 1794484800000,
+        "fromCents": 400,
+        "toCents": 500
+      },
+      {
+        "at": 1794506400000,
+        "fromCents": 500,
+        "toCents": 600
+      },
+      {
+        "at": 1794528000000,
+        "fromCents": 600,
+        "toCents": 700
+      },
+      {
+        "at": 1794549600000,
+        "fromCents": 700,
+        "toCents": 800
+      },
+      {
+        "at": 1794571200000,
+        "fromCents": 800,
+        "toCents": 900
+      },
+      {
+        "at": 1794592800000,
+        "fromCents": 900,
+        "toCents": 1000
+      }
+    ]
+  },
+  "heuristic": {
+    "users": 111,
+    "spendCents": 99900,
+    "finalPriceCents": 900
+  },
+  "fixedMax": {
+    "users": 100,
+    "spendCents": 100000
+  }
+}

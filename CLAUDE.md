@@ -62,7 +62,7 @@ Both acts' agents call the same MCP tools.
 
 ```
 docs/          specification, acceptance scenarios, development log, original project README
-app/           Next.js pages and routes (including /mcp and /api/v1)
+app/           Next.js pages and routes (including /mcp, /api/v1, and /sim, the Act 1 dashboard)
 backend/       server: authentication, OAuth, MCP, REST, negotiation, events
 core/          deterministic core: ledger, pricing rules, deals, settlement      [new]
 sim/           simulator and strategy comparison                                  [new]
@@ -80,7 +80,7 @@ runtime/       runtime adapters (AWS/SQLite only)
 4. ~~`sim/` + comparison (S2, S3)~~ — done
 5. `agents/`: connect Claude — supply estimation and creator decisions done (`npm run sim:claude`); brief parsing still to do
 6. Negotiation channel (C series, S8–S10) — may drop to P1
-7. UI, seed data, and removal of the remaining secondhand-marketplace code
+7. UI, seed data, and removal of the remaining secondhand-marketplace code — Act 1 dashboard done (`/sim`)
 
 ## Local development
 
@@ -109,7 +109,7 @@ runtime/       runtime adapters (AWS/SQLite only)
 | 11/14 | `sim` + comparison, producing the S2/S3 numbers | | Done early (11/11) |
 | 11/15 | `agents` connected to Claude | **11/15: agents working, or cut natural-language policy** | Simulator agents done early (11/11); brief parsing pending |
 | 11/16 | Negotiation channel (unless dropped) | | |
-| 11/17 | Demo UI + seed data, **feature freeze** | | |
+| 11/17 | Demo UI + seed data, **feature freeze** | | Act 1 dashboard done early (11/11) |
 | 11/18 | Polish, record the demo video, README | | |
 | 11/19 | Buffer, submit | | |
 

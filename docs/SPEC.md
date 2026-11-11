@@ -234,6 +234,14 @@ requirements.
 - About 30 creator agents, one of whom meets the negotiation threshold
 - In Act 2 the founder and the creator are two separate Claude sessions, each connected to their own account
 
+**The Act 1 dashboard** is at `/sim` (`app/sim/`, data from `sim/dashboard-data.ts`). It plays a
+recorded Claude run (or a heuristic run for seeds 1–5) tick by tick: sign-ups against the goal and
+the price per sign-up, each against fixed $10, as two charts on a shared time axis (no dual axis);
+KPI tiles at the playhead; the agents' decisions with filters; and the final comparison against
+fixed prices on the same supply. It never calls the API. Chart colors are the dataviz reference
+palette's first two slots, validated for colorblind separation and contrast in light and dark.
+Every value shown in a tooltip is also in the table view.
+
 ## 12. Preconditions (state these in the pitch)
 
 - The platform has already solved cold start; both sides have enough participants
