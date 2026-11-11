@@ -66,7 +66,7 @@ app/           Next.js pages and routes (including /mcp and /api/v1)
 backend/       server: authentication, OAuth, MCP, REST, negotiation, events
 core/          deterministic core: ledger, pricing rules, deals, settlement      [new]
 sim/           simulator and strategy comparison                                  [new]
-agents/        Claude layer: parsing, supply estimation, join decisions, negotiation   [to build]
+agents/        Claude layer: supply estimation and creator join decisions (built); parsing and negotiation to come
 db/ drizzle/   schema, migrations, repository
 tests/         invariant tests and scenario tests
 runtime/       runtime adapters (AWS/SQLite only)
@@ -78,7 +78,7 @@ runtime/       runtime adapters (AWS/SQLite only)
 2. ~~`db/` campaign schema and migration~~ — done (migration 0008)
 3. ~~`core/` + `tests/` for the A and B invariants~~ — done
 4. ~~`sim/` + comparison (S2, S3)~~ — done
-5. `agents/`: connect Claude (parsing, supply estimation, creator decisions)
+5. `agents/`: connect Claude — supply estimation and creator decisions done (`npm run sim:claude`); brief parsing still to do
 6. Negotiation channel (C series, S8–S10) — may drop to P1
 7. UI, seed data, and removal of the remaining secondhand-marketplace code
 
@@ -87,6 +87,8 @@ runtime/       runtime adapters (AWS/SQLite only)
 - Node 24: `nvm use` (the repo has `.nvmrc`)
 - Dev server: `DEALOOP_ORIGIN=http://localhost:3200 npm run dev:aws -- --port 3200`
 - Tests: `npm test`; types: `npm run check`; simulator: `npm run sim`
+- Simulator with Claude agents: `npm run sim:claude -- --seed 1` (calls the API and costs money; add `--creators 5 --days 2` for a cheap trial)
+- Agent tests never call the network: they use a fake `JsonClient` (`tests/agents.test.ts`)
 
 ## Terms
 
@@ -105,7 +107,7 @@ runtime/       runtime adapters (AWS/SQLite only)
 | 11/11 | Final spec, project skeleton, stack | | Done |
 | 11/12–11/13 | `core` + A/B invariant tests | **11/13: tests green, or negotiation drops to P1** | Done early (11/11) |
 | 11/14 | `sim` + comparison, producing the S2/S3 numbers | | Done early (11/11) |
-| 11/15 | `agents` connected to Claude | **11/15: agents working, or cut natural-language policy** | |
+| 11/15 | `agents` connected to Claude | **11/15: agents working, or cut natural-language policy** | Simulator agents done early (11/11); brief parsing pending |
 | 11/16 | Negotiation channel (unless dropped) | | |
 | 11/17 | Demo UI + seed data, **feature freeze** | | |
 | 11/18 | Polish, record the demo video, README | | |

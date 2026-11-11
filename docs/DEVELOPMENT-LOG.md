@@ -135,15 +135,16 @@ That led to the mechanism the MVP now tests:
 | `5f50d27` | Added a local development loop on port 3200. | Next.js in webpack mode keeps the runtime alias working, so development no longer needs a rebuild per change. The original prototype on port 3100 is left untouched. |
 | `0f7bad7` | Built the deterministic campaign core, invariant tests and seven campaign tables. | A random walk (400 sequences × 120 steps) checks every invariant after every step. Injected bugs were all caught, except one: the explicit budget check on raises turned out to be mathematically implied by the "more users" check. The database test caught a CHECK constraint that let NULL through under SQL three-valued logic. |
 | `a9dad8c` | Built the simulator and the strategy comparison. | Baseline market: dynamic 114.5 users at $8.70 vs fixed $10 at 100, and goal met in 100% of runs vs 87% for the best fixed price in hindsight. Thick market: 210 users at $4.74. Thin market: dynamic slightly worse than fixed $10, because climbing costs time when supply cannot reach the goal at any price. A 6-hour tick beat 1 day (too slow in thin markets) and 2 hours (noise pushes the irreversible price too high). |
+| Claude simulator (after `7aa31fd`) | Put Claude into the simulator: a founder agent that forecasts supply and creator agents that join or decline for their owners. | First full run: 258 calls, no failures, about $1.47. The headline comparison looked worse than the heuristic (100 vs 111 users), but the cause was supply: Claude creators turned down poor-fit campaigns, so only 15 of 30 joined. Replaying their recorded decisions on the same supply showed the Claude founder ahead of the heuristic founder (100 vs 91), near the best fixed price in hindsight (103). One seed only. Also fixed a prompt that made creator agents think they worked for Dealoop. |
 
-All results are from synthetic markets. The supply estimator is still a transparent heuristic
-with an assumed price elasticity of 1.5.
+All results are from synthetic markets. The heuristic estimator assumes a price elasticity of 1.5;
+the Claude estimator forecasts from observations instead.
 
 ---
 
 ## Part 5 · What is next
 
-1. A Claude-backed supply estimator behind the existing `SupplyEstimator` interface
+1. Claude parsing the founder's one-sentence brief (S1)
 2. A dashboard for Act 1 (price curve, users, budget)
 3. The negotiation channel for top creators (S8–S10)
 4. Allowing Claude's OAuth callback, then a public address for Act 2

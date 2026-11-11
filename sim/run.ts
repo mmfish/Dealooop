@@ -8,8 +8,10 @@ import {
   applyAgentProposal, closeCampaign, counts, createCampaign, recordConversion, rejectConversion, settle,
   verifyConversion, type Book, type LedgerEntry,
 } from '../core/campaign.ts';
-import {createRng, generateMarket, MARKETS, type MarketSpec, type SyntheticCreator} from './market.ts';
+import {createRng, generateMarket, generateProfiles, MARKETS, type MarketSpec, type SyntheticCreator} from './market.ts';
 import {HeuristicEstimator, type SupplyEstimator} from './estimator.ts';
+import {DEALOOP_SEED_PRODUCT, ThresholdPolicy, type CreatorPolicy} from './policy.ts';
+import {mapLimit} from '../agents/claude.ts';
 
 const HOUR = 3_600_000;
 const DAY = 24 * HOUR;
@@ -39,6 +41,22 @@ export interface RunOptions {
   rejectionRate?: number;
   /** Record a per-tick timeline (for the dashboard). Off for bulk runs. */
   timeline?: boolean;
+  /** How creators decide to join. Defaults to the threshold rule (join once price >= floor). */
+  creatorPolicy?: CreatorPolicy;
+  /** Product being promoted, shown to creator agents. Defaults to Dealoop itself. */
+  product?: {productName: string; productPitch: string};
+  /** Record agents' decisions and rationales (for the dashboard and the demo). */
+  log?: boolean;
+  /** Most creator decisions requested at once. */
+  concurrency?: number;
+}
+
+export interface AgentLogEntry {
+  at: number;
+  actor: string;
+  kind: 'join' | 'decline' | 'raise' | 'hold';
+  text: string;
+  fellBack?: boolean;
 }
 
 export interface TimelinePoint {
@@ -68,6 +86,9 @@ export interface RunResult {
   ledger: LedgerEntry[];
   book: Book;
   timeline: TimelinePoint[];
+  agentLog: AgentLogEntry[];
+  estimator: string;
+  creatorPolicy: string;
 }
 
 export function strategyLabel(s: Strategy): string {
@@ -81,11 +102,14 @@ export async function runCampaign(options: RunOptions): Promise<RunResult> {
   const lagHours = options.verificationLagHours ?? 24;
   const rejectionRate = options.rejectionRate ?? 0.05;
   const estimator = options.estimator ?? new HeuristicEstimator();
+  const policy = options.creatorPolicy ?? new ThresholdPolicy();
+  const product = options.product ?? DEALOOP_SEED_PRODUCT;
   const strategy = options.strategy;
 
   // The market and the event stream use separate seeds so strategies face the same creators.
   const creators: SyntheticCreator[] = generateMarket(market, createRng(options.seed));
   const rng = createRng(options.seed * 7919 + 17);
+  const profiles = generateProfiles(creators, options.seed);
 
   const deadline = SIM_START + brief.days * DAY;
   let book = createCampaign({
@@ -101,6 +125,12 @@ export async function runCampaign(options: RunOptions): Promise<RunResult> {
   const produced = new Map<string, number>();
   const dueAt = new Map<string, number>();
   const timeline: TimelinePoint[] = [];
+  const agentLog: AgentLogEntry[] = [];
+  const log = (entry: AgentLogEntry) => { if (options.log) agentLog.push(entry); };
+  // Creators who have agreed to promote. The price never falls, so a creator who joins stays in.
+  const joined = new Set<string>();
+  // The price each undecided creator was last asked about, so nobody is asked twice at one price.
+  const askedAt = new Map<string, number>();
   let n = 0;
 
   const settleDue = (now: number) => {
@@ -113,9 +143,28 @@ export async function runCampaign(options: RunOptions): Promise<RunResult> {
   for (let tickStart = SIM_START; tickStart < deadline; tickStart += tickHours * HOUR) {
     const tickEnd = Math.min(deadline, tickStart + tickHours * HOUR);
     const price = book.campaign.currentPriceCents;
-    // A creator promotes once the price meets their minimum. With a retroactive
+    // Creators who have not joined decide at each new price level. With a retroactive
     // uniform price there is nothing to gain by waiting (SPEC §6).
-    const active = creators.filter(c => price >= c.minPriceCents && (produced.get(c.id) ?? 0) < c.capacity);
+    const undecided = creators.filter(c => !joined.has(c.id) && askedAt.get(c.id) !== price && (produced.get(c.id) ?? 0) < c.capacity);
+    if (undecided.length) {
+      const committed = book.conversions.filter(x => x.status === 'pending' || x.status === 'verified').length * price;
+      const offer = {
+        ...product, priceCents: price, maxCacCents: brief.maxCacCents,
+        remainingBudgetCents: Math.max(0, brief.budgetCents - committed), hoursLeft: (deadline - tickStart) / HOUR,
+      };
+      const decisions = await mapLimit(undecided, options.concurrency ?? 8, creator =>
+        policy.decide({profile: profiles.get(creator.id)!, minTakeHomeCents: creator.minPriceCents, offer}));
+      undecided.forEach((creator, i) => {
+        askedAt.set(creator.id, price);
+        const d = decisions[i];
+        if (d.join) joined.add(creator.id);
+        // Declines are logged only when an agent reasoned about them; the threshold rule's are noise.
+        if (d.join || policy.name !== 'threshold') {
+          log({at: tickStart, actor: creator.id, kind: d.join ? 'join' : 'decline', text: d.rationale, fellBack: d.fellBack});
+        }
+      });
+    }
+    const active = creators.filter(c => joined.has(c.id) && (produced.get(c.id) ?? 0) < c.capacity);
 
     const arrivals: {creator: SyntheticCreator; at: number}[] = [];
     for (const creator of active) {
@@ -136,9 +185,18 @@ export async function runCampaign(options: RunOptions): Promise<RunResult> {
 
     if (strategy.kind === 'dynamic' && tickEnd < deadline) {
       const estimate = await estimator.estimate(book, tickEnd);
-      book = applyAgentProposal(book, {
+      const result = applyAgentProposal(book, {
         kind: 'raise_price', supplyAtCurrent: estimate.supplyAtCurrent, supplyAtRaised: estimate.supplyAtRaised, rationale: estimate.rationale,
-      }, tickEnd).book;
+      }, tickEnd);
+      book = result.book;
+      const d = result.decision;
+      const price = (cents: number) => '$' + (cents / 100).toFixed(2);
+      log({
+        at: tickEnd, actor: 'founder', kind: result.accepted ? 'raise' : 'hold',
+        text: `Forecast ${estimate.supplyAtCurrent} more at the current price vs ${estimate.supplyAtRaised} one step up. `
+          + `${estimate.rationale} Core: ${result.reason}`
+          + (d ? ` (projected ${d.projectedAtCurrent} vs ${d.projectedAtRaised} users${result.accepted ? `; price now ${price(d.toCents)}` : ''})` : ''),
+      });
     }
 
     if (options.timeline) {
@@ -175,5 +233,8 @@ export async function runCampaign(options: RunOptions): Promise<RunResult> {
     ledger,
     book,
     timeline,
+    agentLog,
+    estimator: strategy.kind === 'dynamic' ? estimator.name : 'none',
+    creatorPolicy: policy.name,
   };
 }

@@ -75,6 +75,24 @@ npm run sim -- --runs 200 --market baseline --tick 6
 Compares the dynamic price with a range of fixed prices in three synthetic markets (baseline,
 thin, thick). See [docs/SPEC.md §10](docs/SPEC.md) for how to read the results.
 
+### With Claude agents
+
+```sh
+npm run sim:claude -- --seed 1
+```
+
+```sh
+npm run sim:claude -- --seed 1 --creators 5 --days 2
+```
+
+Runs one campaign where Claude is the founder's pricing analyst and every creator's agent, next
+to the heuristic simulator and fixed $10 on the same seed. It prints each price decision with the
+agent's forecast and the core's verdict, a sample of creators' join/decline rationales, and token
+usage with an estimated cost, and saves the full run to `data/sim-runs/`. **It calls the Anthropic
+API and costs money**: the second command is a small trial run. Credentials come from the
+environment (`ANTHROPIC_API_KEY`). Models default to `claude-opus-5-5`; override with
+`DEALOOP_FOUNDER_MODEL` and `DEALOOP_CREATOR_MODEL`. See [docs/SPEC.md §10.1](docs/SPEC.md).
+
 ## About the data
 
 The creators, conversions and comparison results shown in the demo and the pitch are **all

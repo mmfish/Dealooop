@@ -163,6 +163,58 @@ Supply estimation currently uses a transparent heuristic (`HeuristicEstimator` i
 `sim/estimator.ts`: it measures the conversion rate over the last 48 hours and **assumes** a
 price elasticity of 1.5). A Claude-backed estimator implements the same interface; see §7.
 
+### 10.1 The simulator with Claude agents
+
+`npm run sim:claude` runs one campaign where Claude plays two roles, through the same interfaces
+the heuristic simulator uses:
+
+- **Founder agent, pricing analyst** (`agents/founder-estimator.ts`). Every 6-hour tick it gets
+  only what the platform observes (sign-ups per price level, distinct creators, time and budget
+  left) and forecasts supply at the current price and one step up. The core decides.
+- **Creator agents** (`agents/creator-agent.ts`). Each knows its own owner's profile and private
+  floor, and decides whether to join at each new price level. Above the floor it judges audience
+  fit, as a creator would. A "yes" below the floor is overruled in code.
+
+Both ask for JSON through structured outputs, validated again with zod. A failed, refused or
+invalid answer falls back to the heuristic or the floor rule and is marked in the log. Models
+default to `claude-opus-5-5` with server-side refusal fallbacks; tests use a fake client and never
+call the network.
+
+**First full run, 2026-11-11** (seed 1, baseline market, 30 creators, 14 days): 258 calls, none
+failed, about $1.47 at list price, 5½ minutes.
+
+| Strategy | Users | Avg CAC |
+|---|---|---|
+| Claude founder + Claude creators | 100 | $10.00 |
+| Heuristic founder + threshold creators (the plain simulator) | 111 | $9.00 |
+| Fixed $10 + threshold creators | 100 | $10.00 |
+
+That first comparison is misleading. **Claude creators declined poor-fit campaigns even above
+their floor** (a home-cooking or gaming audience does not suit Dealoop), so only 15 of 30 ever
+joined, against 21 under the threshold rule. The market itself was thinner. `sim/replay.ts`
+replays the recorded creator decisions without API calls, which holds supply fixed and isolates
+pricing:
+
+| Same supply (Claude creators' decisions replayed) | Users |
+|---|---|
+| Claude founder | **100** |
+| Heuristic founder | 91 |
+| Fixed $9 (best fixed in hindsight) | 103 |
+| Fixed $10 | 100 |
+
+On the same supply the Claude founder beat the heuristic founder (100 vs 91) and came within 3
+users of the best fixed price in hindsight. **This is one seed**; it is an example, not evidence.
+Two observations worth keeping:
+
+- With no data, both founders raise at every early tick. Claude says so plainly ("low-confidence
+  priors"), which reads well in the demo, but it does not climb any faster or slower.
+- Creator fit judgments change the economics: a realistic market has fewer willing creators at
+  every price than the threshold model assumes. The §10 numbers are optimistic for that reason.
+
+Prompt fix after the first run: with Dealoop as the seed product, two creator agents described a
+"conflict of interest" because they took themselves to be part of Dealoop. The system prompt now
+says the agent works only for the creator. A later small run showed no such lines.
+
 ## 11. Demo: two acts
 
 **Act 1 · Scale (simulator).** Headless Claude agents drive about 30 synthetic creators on a

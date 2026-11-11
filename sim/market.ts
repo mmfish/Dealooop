@@ -75,3 +75,40 @@ export function generateMarket(spec: MarketSpec, rng: Rng): SyntheticCreator[] {
     verifiedTotal: rng.int(0, 120),
   }));
 }
+
+// ---------------------------------------------------------------------------
+// Public creator profiles, for agents that reason in natural language. Generated
+// from a separate seed so adding personas does not change the market above.
+// ---------------------------------------------------------------------------
+
+export interface CreatorProfile {
+  id: string;
+  handle: string;
+  niche: string;
+  platform: string;
+  followers: number;
+}
+
+const NICHES = [
+  'indie hacking and bootstrapped SaaS', 'AI tools and prompt engineering', 'developer tools and open source',
+  'productivity and note-taking apps', 'growth marketing for startups', 'UI/UX design', 'no-code building',
+  'freelancing and the creator economy', 'tech career advice', 'home cooking', 'fitness and running',
+  'personal finance', 'travel vlogging', 'gaming', 'parenting',
+];
+const PLATFORMS = ['YouTube', 'X', 'Instagram', 'TikTok', 'LinkedIn', 'newsletter'];
+
+export function generateProfiles(creators: SyntheticCreator[], seed: number): Map<string, CreatorProfile> {
+  const rng = createRng(seed * 104729 + 3);
+  const profiles = new Map<string, CreatorProfile>();
+  for (const c of creators) {
+    const niche = NICHES[rng.int(0, NICHES.length - 1)];
+    profiles.set(c.id, {
+      id: c.id,
+      handle: '@' + niche.split(/[^a-z]+/i)[0].toLowerCase() + '_' + c.id.slice(-2),
+      niche,
+      platform: PLATFORMS[rng.int(0, PLATFORMS.length - 1)],
+      followers: Math.round(rng.uniform(2_000, 250_000) / 100) * 100,
+    });
+  }
+  return profiles;
+}

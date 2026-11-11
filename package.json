@@ -14,9 +14,11 @@
     "start:aws": "next start -H 127.0.0.1",
     "test:aws": "node --experimental-transform-types --test tests/aws.test.ts",
     "dev:aws": "DEALOOP_BUILD_TARGET=aws DEALOOP_RUNTIME=aws next dev --webpack -H 127.0.0.1",
-    "sim": "node --experimental-transform-types --no-warnings sim/cli.ts"
+    "sim": "node --experimental-transform-types --no-warnings sim/cli.ts",
+    "sim:claude": "node --experimental-transform-types --no-warnings sim/claude-cli.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.8.0",
     "@aws-sdk/client-s3": "^3.1161.0",
     "@base-ui/react": "^1.7.0",
     "@hookform/resolvers": "^5.7.1",
