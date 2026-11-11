@@ -42,3 +42,57 @@ export const oauthRefreshTokens=sqliteTable('oauth_refresh_tokens',{tokenHash:te
 export const shortlistState=sqliteTable('shortlist_state',{postId:text('post_id').primaryKey().references(()=>posts.id),version:integer('version').notNull(),updatedAt:integer('updated_at').notNull(),actor:text('actor').notNull()});
 export const shortlistEntries=sqliteTable('shortlist_entries',{postId:text('post_id').notNull().references(()=>posts.id),rank:integer('rank').notNull(),offerId:text('offer_id').notNull().references(()=>offers.id),offerRevision:integer('offer_revision').notNull(),summary:text('summary').notNull(),reason:text('reason').notNull(),price:integer('price').notNull(),condition:text('condition').notNull(),delivery:text('delivery').notNull(),expiresAt:integer('expires_at').notNull()},t=>[check('shortlist_rank_bounds',sql`${t.rank} BETWEEN 1 AND 3`),uniqueIndex('shortlist_rank').on(t.postId,t.rank),uniqueIndex('shortlist_offer').on(t.postId,t.offerId)]);
 export const shortlistActions=sqliteTable('shortlist_actions',{id:text('id').primaryKey(),postId:text('post_id').notNull().references(()=>posts.id),ownerId:text('owner_id').notNull().references(()=>users.id),actorKey:text('actor_key').notNull(),idempotencyKey:text('idempotency_key').notNull(),requestHash:text('request_hash').notNull(),version:integer('version').notNull(),createdAt:integer('created_at').notNull()},t=>[uniqueIndex('shortlist_idempotency').on(t.ownerId,t.actorKey,t.idempotencyKey)]);
+
+// ---------------------------------------------------------------------------
+// Dealoop campaign domain (docs/SPEC.md §5). The rules live in core/campaign.ts;
+// these tables persist its Book, and the CHECK constraints are a second line of
+// defense for the money invariants (docs/ACCEPTANCE.md A1, A4, A7).
+// All amounts are integer cents.
+// ---------------------------------------------------------------------------
+export const campaigns=sqliteTable('campaigns',{
+ id:text('id').primaryKey(),ownerId:text('owner_id').notNull().references(()=>users.id),
+ title:text('title').notNull(),brief:text('brief').notNull(),productUrl:text('product_url').notNull(),
+ goalCount:integer('goal_count').notNull(),budgetCents:integer('budget_cents').notNull(),maxCacCents:integer('max_cac_cents').notNull(),
+ startPriceCents:integer('start_price_cents').notNull(),stepCents:integer('step_cents').notNull(),currentPriceCents:integer('current_price_cents').notNull(),
+ deadline:integer('deadline').notNull(),status:text('status').notNull().default('open'),nextSeq:integer('next_seq').notNull().default(1),
+ demo:integer('demo').notNull().default(0),createdAt:integer('created_at').notNull(),
+},t=>[
+ index('campaign_browse').on(t.status,t.createdAt),index('campaign_owner').on(t.ownerId),
+ check('campaign_status',sql`${t.status} IN ('open','closed')`),
+ check('campaign_amounts',sql`${t.goalCount}>0 AND ${t.budgetCents}>0 AND ${t.maxCacCents}>0 AND ${t.maxCacCents}<=${t.budgetCents} AND ${t.stepCents}>0`),
+ check('campaign_price_bounds',sql`${t.currentPriceCents}>=${t.startPriceCents} AND ${t.currentPriceCents}<=${t.maxCacCents}`),
+]);
+export const campaignLinks=sqliteTable('campaign_links',{
+ id:text('id').primaryKey(),campaignId:text('campaign_id').notNull().references(()=>campaigns.id),
+ creatorId:text('creator_id').notNull().references(()=>users.id),token:text('token').notNull().unique(),createdAt:integer('created_at').notNull(),
+},t=>[uniqueIndex('campaign_link_creator').on(t.campaignId,t.creatorId)]);
+export const conversions=sqliteTable('conversions',{
+ id:text('id').primaryKey(),campaignId:text('campaign_id').notNull().references(()=>campaigns.id),
+ linkId:text('link_id').notNull().references(()=>campaignLinks.id),creatorId:text('creator_id').notNull().references(()=>users.id),
+ externalUserId:text('external_user_id').notNull(),seq:integer('seq').notNull(),status:text('status').notNull(),
+ channel:text('channel').notNull(),dealPriceCents:integer('deal_price_cents'),createdAt:integer('created_at').notNull(),updatedAt:integer('updated_at').notNull(),
+},t=>[
+ uniqueIndex('conversion_user').on(t.campaignId,t.externalUserId),uniqueIndex('conversion_seq').on(t.campaignId,t.seq),
+ index('conversion_creator').on(t.creatorId,t.createdAt),
+ check('conversion_status',sql`${t.status} IN ('pending','verified','rejected','unfunded')`),
+ check('conversion_channel',sql`(${t.channel}='public' AND ${t.dealPriceCents} IS NULL) OR (${t.channel}='deal' AND ${t.dealPriceCents} IS NOT NULL AND ${t.dealPriceCents}>0)`),
+]);
+export const campaignDeals=sqliteTable('campaign_deals',{
+ campaignId:text('campaign_id').notNull().references(()=>campaigns.id),creatorId:text('creator_id').notNull().references(()=>users.id),
+ priceCents:integer('price_cents').notNull(),offerId:text('offer_id').references(()=>offers.id),createdAt:integer('created_at').notNull(),
+},t=>[uniqueIndex('campaign_deal_creator').on(t.campaignId,t.creatorId),check('campaign_deal_price',sql`${t.priceCents}>0`)]);
+export const priceChanges=sqliteTable('price_changes',{
+ sequence:integer('sequence').primaryKey({autoIncrement:true}),campaignId:text('campaign_id').notNull().references(()=>campaigns.id),
+ fromCents:integer('from_cents').notNull(),toCents:integer('to_cents').notNull(),rationale:text('rationale'),createdAt:integer('created_at').notNull(),
+},t=>[index('price_change_campaign').on(t.campaignId,t.sequence),check('price_change_up',sql`${t.toCents}>${t.fromCents}`)]);
+// Every refused agent proposal, with its reason, for the UI (ACCEPTANCE S4, S7).
+export const proposalRejections=sqliteTable('proposal_rejections',{
+ sequence:integer('sequence').primaryKey({autoIncrement:true}),campaignId:text('campaign_id').notNull().references(()=>campaigns.id),
+ actor:text('actor').notNull(),kind:text('kind').notNull(),reason:text('reason').notNull(),createdAt:integer('created_at').notNull(),
+},t=>[index('proposal_rejection_campaign').on(t.campaignId,t.sequence)]);
+// Written once, at settlement. The unique conversion_id makes a second payout impossible (A5).
+export const ledgerEntries=sqliteTable('ledger_entries',{
+ id:text('id').primaryKey(),campaignId:text('campaign_id').notNull().references(()=>campaigns.id),
+ conversionId:text('conversion_id').notNull().unique().references(()=>conversions.id),creatorId:text('creator_id').notNull().references(()=>users.id),
+ seq:integer('seq').notNull(),channel:text('channel').notNull(),amountCents:integer('amount_cents').notNull(),createdAt:integer('created_at').notNull(),
+},t=>[index('ledger_campaign').on(t.campaignId,t.seq),check('ledger_amount',sql`${t.amountCents}>0`)]);

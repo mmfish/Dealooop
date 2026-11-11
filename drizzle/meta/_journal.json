@@ -57,6 +57,13 @@
       "when": 1793814628656,
       "tag": "0007_rate_limit_expiry",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1794425315202,
+      "tag": "0008_campaigns",
+      "breakpoints": true
     }
   ]
 }

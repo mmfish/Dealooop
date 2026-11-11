@@ -106,6 +106,9 @@ pending 转化按**当前价**占用预算额度，和 verified 一样参与 §6
 
 这样可以防止"验证期内超发"导致结算时超支。
 
+**准入控制**：记录一个新转化时，若"已占用额度 + 该转化单价 > 预算"，它在记录时即标为
+`unfunded`，永不支付（`core/campaign.ts` 的 `recordConversion`）。
+
 ## 9. 私下议价通道（P0-lite，可降级为 P1）
 
 `verified_conversion_total ≥ 50` 的 creator，其 agent 可以发起议价：
