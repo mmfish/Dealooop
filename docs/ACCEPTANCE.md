@@ -2,9 +2,10 @@
 
 Every invariant has at least one test. **Write these tests first, then the implementation.**
 
-Status as of 2026-11-11: A1–A10, B1–B3, C5, S1–S7 are tested (`tests/core-*.test.ts`,
-`tests/db-campaigns.test.ts`, `tests/sim.test.ts`). C1–C4 and S8–S10 wait for the negotiation
-channel.
+Status as of 2026-11-11: every invariant and scenario here is tested. A, B and S1–S7 in
+`tests/core-*.test.ts`, `tests/db-campaigns.test.ts` and `tests/sim.test.ts`; C1–C5 and S8–S10 in
+`tests/negotiation-channel.test.ts` (the inherited `tests/negotiation.test.ts` covers the Muse
+offer engine).
 
 ## A. Ledger invariants (must hold after any sequence of operations)
 
@@ -12,7 +13,7 @@ channel.
 |---|---|---|
 | A1 | A campaign's total payout ≤ `budget_cents` | Asserted after thousands of random conversion and pricing sequences |
 | A2 | Every public-channel payout = the campaign's final price | Old conversions must also equal the new price after a raise |
-| A3 | Every payout to a creator with a `Deal` = the deal price | |
+| A3 | Every payout on a `Deal` = max(deal price, the final public price); sign-ups past the deal's volume cap are public | A deal never pays less than the public channel |
 | A4 | No unit payout exceeds `max_cac_cents` | Applies to the public price and deal prices |
 | A5 | A conversion is paid at most once | Repeated verification or settlement must not add money |
 | A6 | Only `verified` conversions are paid | Pending / rejected pay 0 |
@@ -84,8 +85,8 @@ and every run satisfies A1, A2 and A4. (`tests/sim.test.ts`)
 
 ### S8 · A top creator negotiates
 **Given** creator Y has `verified_conversion_total = 200`, and the public price is $5
-**When** Y's agent negotiates and reaches $7 with a 50-user guarantee within 2 rounds
-**Then** a `Deal` is created, Y is paid $7, the public price stays $5, and C1–C4 hold.
+**When** Y's agent negotiates with the founder's agent (Y's floor $6.50; the founder's ceiling $7.50 for up to 50)
+**Then** a `Deal` is created with a price between $6.50 and $7.50 and a volume of at most 50, Y is paid the deal price, the public price stays $5, and C1–C4 hold.
 
 ### S9 · Negotiation fails
 **Given** creator Y's minimum take-home is $12 > `max_cac` $10

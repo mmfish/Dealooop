@@ -121,14 +121,36 @@ settlement.
 conversion's unit price > budget", it is marked `unfunded` at that moment and never paid
 (`recordConversion` in `core/campaign.ts`).
 
-## 9. Private negotiation channel (P0-lite, may drop to P1)
+## 9. Private negotiation channel
 
-A creator with `verified_conversion_total ≥ 50` may have their agent open a negotiation:
+A creator with `verified_conversion_total ≥ 50` may have their agent open a negotiation with the
+founder's agent. Built 2026-11-11: protocol in `core/negotiation.ts`, Claude negotiators in
+`agents/negotiator.ts`, runner and rule-based negotiator in `sim/negotiation-run.ts`,
+`npm run negotiate` to run one.
 
-- Issues: unit price, guaranteed volume, deadline, tiered bonuses
-- At most 2 rounds; each side carries a mandate (the creator's minimum take-home, the founder's price flexibility), hidden from the other side
-- The agreed price is `≤ max_cac` and becomes a `Deal`; that creator is then paid at the deal price, and the public price is unaffected
-- Neither side's private constraints may be revealed (there are tests for this)
+- **Terms**: a price floor per verified sign-up, and a volume cap (how many of the creator's
+  sign-ups the floor covers). Deadline and tiered bonuses were in the original list and are not
+  built.
+- **A deal never pays less than the public price.** Each deal sign-up is paid
+  max(deal price, current public price), so a creator never regrets a deal when the public price
+  later rises. Sign-ups past the cap are paid the public price.
+- **Rounds**: the creator opens; the founder accepts, rejects or counters; the creator then gets
+  one more move; the founder's last reply can only accept or reject. Four moves at most.
+- **Mandates**: the creator's minimum deal price; the founder's maximum deal price and maximum
+  volume. Each agent sees only its own owner's. The core holds both only to enforce them: a
+  proposal or acceptance outside the sender's own mandate is refused.
+- **Privacy**: a message that states the sender's undisclosed limit is refused (stating terms
+  already on the table is fine). A refused move goes back to the agent with the reason; after two
+  refusals the runner rejects on its behalf.
+- The agreed price is `≤ max_cac`, and the deal is recorded through `createDeal`, the same path
+  and checks as any other deal. A failed negotiation changes nothing.
+- The protocol ports the Muse engine's rules (a proposal is its author's agreement; only the
+  terms on the table can be accepted; one atomic agreement). It does not yet persist to the
+  database or expose MCP tools; that comes with Act 2.
+
+First live run, 2026-11-11 (public price $5; creator floor $6.50; founder ceiling $7.50 for up
+to 50): creator asked $9.00 × 60, founder countered $6.50 × 40, creator countered $7.25 × 40,
+founder accepted. 4 calls, about $0.05, no refused moves.
 
 ## 10. Simulator and comparison
 

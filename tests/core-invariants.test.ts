@@ -6,7 +6,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {
   applyAgentProposal, closeCampaign, committedCents, counts, createCampaign, CoreError,
-  DEAL_ELIGIBILITY_THRESHOLD, recordConversion, rejectConversion, settle, verifyConversion,
+  DEAL_ELIGIBILITY_THRESHOLD, recordConversion, rejectConversion, settle, unitPrice, verifyConversion,
   type Book,
 } from '../core/campaign.ts';
 
@@ -43,8 +43,8 @@ function checkInvariants(book: Book, label: string) {
       // A2: public payouts equal the final (current) price, retroactively.
       assert.equal(e.amountCents, campaign.currentPriceCents, `${label} A2`);
     } else {
-      // A3: deal payouts equal the creator's deal price.
-      assert.equal(e.amountCents, book.deals[e.creatorId].priceCents, `${label} A3`);
+      // A3: deal payouts equal the deal price, or the public price when that is higher.
+      assert.equal(e.amountCents, Math.max(book.deals[e.creatorId].priceCents, campaign.currentPriceCents), `${label} A3`);
     }
     // A4: no unit payout exceeds the maximum CAC.
     assert.ok(e.amountCents <= campaign.maxCacCents, `${label} A4`);
@@ -101,7 +101,7 @@ test('A1–A10 and B1–B3 hold across random operation sequences', () => {
           if (pending.length) {
             const target = r.pick(pending);
             const committedBefore = committedCents(book);
-            const price = target.channel === 'deal' ? target.dealPriceCents! : book.campaign.currentPriceCents;
+            const price = unitPrice(book, target);
             book = rejectConversion(book, target.id);
             // A8: rejecting a pending conversion releases exactly its reservation.
             assert.equal(committedCents(book), committedBefore - price, `${label} A8`);
@@ -128,6 +128,7 @@ test('A1–A10 and B1–B3 hold across random operation sequences', () => {
           const result = applyAgentProposal(book, {
             kind: 'create_deal', creatorId,
             priceCents: r.int(1, book.campaign.maxCacCents * 2),
+            volumeCap: r.int(1, 12),
             creatorVerifiedTotal: r.int(0, DEAL_ELIGIBILITY_THRESHOLD * 3),
           }, NOW + step);
           if (result.accepted) seen.dealAccepted++;
@@ -159,9 +160,11 @@ test('A9: malicious or malformed agent proposals have zero effect on money', () 
     {kind: 'raise_price', supplyAtCurrent: -1, supplyAtRaised: 10},
     {kind: 'raise_price', supplyAtCurrent: 1.5, supplyAtRaised: 10},
     {kind: 'raise_price', supplyAtCurrent: 0, supplyAtRaised: 10, toCents: 9_999},
-    {kind: 'create_deal', creatorId: 'x', priceCents: 50_000, creatorVerifiedTotal: 500},
-    {kind: 'create_deal', creatorId: 'x', priceCents: 700, creatorVerifiedTotal: 3},
-    {kind: 'create_deal', creatorId: 'x', priceCents: 700, creatorVerifiedTotal: 500, balanceCents: 1},
+    {kind: 'create_deal', creatorId: 'x', priceCents: 50_000, volumeCap: 10, creatorVerifiedTotal: 500},
+    {kind: 'create_deal', creatorId: 'x', priceCents: 700, volumeCap: 10, creatorVerifiedTotal: 3},
+    {kind: 'create_deal', creatorId: 'x', priceCents: 700, volumeCap: 10, creatorVerifiedTotal: 500, balanceCents: 1},
+    {kind: 'create_deal', creatorId: 'x', priceCents: 700, volumeCap: 0, creatorVerifiedTotal: 500},
+    {kind: 'create_deal', creatorId: 'x', priceCents: 700, creatorVerifiedTotal: 500},
     {kind: 'transfer', from: 'x', to: 'y', amountCents: 100},
     null, 'raise_price', 42, [], {},
   ];

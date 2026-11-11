@@ -66,7 +66,7 @@ app/           Next.js pages and routes (including /mcp, /api/v1, and /sim, the 
 backend/       server: authentication, OAuth, MCP, REST, negotiation, events
 core/          deterministic core: ledger, pricing rules, deals, settlement      [new]
 sim/           simulator and strategy comparison                                  [new]
-agents/        Claude layer: supply estimation and creator join decisions (built); parsing and negotiation to come
+agents/        Claude layer: supply estimation, creator join decisions, negotiation (built); brief parsing to come
 db/ drizzle/   schema, migrations, repository
 tests/         invariant tests and scenario tests
 runtime/       runtime adapters (AWS/SQLite only)
@@ -79,7 +79,7 @@ runtime/       runtime adapters (AWS/SQLite only)
 3. ~~`core/` + `tests/` for the A and B invariants~~ — done
 4. ~~`sim/` + comparison (S2, S3)~~ — done
 5. `agents/`: connect Claude — supply estimation and creator decisions done (`npm run sim:claude`); brief parsing still to do
-6. Negotiation channel (C series, S8–S10) — may drop to P1
+6. ~~Negotiation channel (C series, S8–S10)~~ — done (`core/negotiation.ts`, `npm run negotiate`); persistence and MCP tools come with Act 2
 7. UI, seed data, and removal of the remaining secondhand-marketplace code — Act 1 dashboard done (`/sim`)
 
 ## Local development
@@ -96,7 +96,7 @@ runtime/       runtime adapters (AWS/SQLite only)
 - **Retroactive uniform price**: after a raise, conversions verified earlier are also paid the new price
 - **pending**: a conversion that has happened but not yet passed verification; it holds budget at the current price
 - **unfunded**: a conversion recorded after the budget was fully held; never paid
-- **deal**: private terms negotiated by a top creator; does not affect the public price
+- **deal**: private terms negotiated by a top creator: a price floor for a capped number of sign-ups, paid at least the public price; does not affect the public price
 - **mandate**: the bounds within which an agent may decide on its own (budget, max CAC, minimum take-home)
 - **supply(p, d)**: the estimate of how many more conversions price p will bring over the remaining time d; produced by the agent
 
@@ -108,7 +108,7 @@ runtime/       runtime adapters (AWS/SQLite only)
 | 11/12–11/13 | `core` + A/B invariant tests | **11/13: tests green, or negotiation drops to P1** | Done early (11/11) |
 | 11/14 | `sim` + comparison, producing the S2/S3 numbers | | Done early (11/11) |
 | 11/15 | `agents` connected to Claude | **11/15: agents working, or cut natural-language policy** | Simulator agents done early (11/11); brief parsing pending |
-| 11/16 | Negotiation channel (unless dropped) | | |
+| 11/16 | Negotiation channel (unless dropped) | | Done early (11/11) |
 | 11/17 | Demo UI + seed data, **feature freeze** | | Act 1 dashboard done early (11/11) |
 | 11/18 | Polish, record the demo video, README | | |
 | 11/19 | Buffer, submit | | |

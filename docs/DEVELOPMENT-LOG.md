@@ -137,6 +137,7 @@ That led to the mechanism the MVP now tests:
 | `a9dad8c` | Built the simulator and the strategy comparison. | Baseline market: dynamic 114.5 users at $8.70 vs fixed $10 at 100, and goal met in 100% of runs vs 87% for the best fixed price in hindsight. Thick market: 210 users at $4.74. Thin market: dynamic slightly worse than fixed $10, because climbing costs time when supply cannot reach the goal at any price. A 6-hour tick beat 1 day (too slow in thin markets) and 2 hours (noise pushes the irreversible price too high). |
 | Claude simulator (after `7aa31fd`) | Put Claude into the simulator: a founder agent that forecasts supply and creator agents that join or decline for their owners. | First full run: 258 calls, no failures, about $1.47. The headline comparison looked worse than the heuristic (100 vs 111 users), but the cause was supply: Claude creators turned down poor-fit campaigns, so only 15 of 30 joined. Replaying their recorded decisions on the same supply showed the Claude founder ahead of the heuristic founder (100 vs 91), near the best fixed price in hindsight (103). One seed only. Also fixed a prompt that made creator agents think they worked for Dealoop. |
 | Act 1 dashboard (after `69b77b4`) | Built `/sim`: playback of a campaign with sign-ups and price charts against fixed $10, KPI tiles, the agents' decisions with filters, and the final comparison. | Browser checks caught four problems before commit: the default run was a 6-creator trial instead of the full run; end-of-line labels collided; the last point showed 99 sign-ups while settlement paid 100 (conversions finish verification after the deadline); and a CSS rule meant for the charts stretched the tooltip keys. Light, dark and phone widths verified. |
+| Negotiation channel (after `ba5c78a`) | Built the private deal channel: a deterministic protocol enforcing C1–C5, Claude negotiators for both sides, a rule-based fallback, and `npm run negotiate`. Deals gained a volume cap and now never pay less than the public price. | Changing deal pay to max(deal, public) broke the A8 invariant test, which still assumed the old price: the random walk caught the semantic change immediately. Mutation checks (removing the last-round rule, the leak check, or the mandate check) each failed the suite. First live run: $9.00 × 60 → $6.50 × 40 → $7.25 × 40 → accepted, 4 calls, about $0.05. |
 
 All results are from synthetic markets. The heuristic estimator assumes a price elasticity of 1.5;
 the Claude estimator forecasts from observations instead.
@@ -146,8 +147,7 @@ the Claude estimator forecasts from observations instead.
 ## Part 5 · What is next
 
 1. Claude parsing the founder's one-sentence brief (S1)
-2. The negotiation channel for top creators (S8–S10)
-3. Allowing Claude's OAuth callback, then a public address for Act 2
-4. Replacing the secondhand-marketplace pages and removing their code
+2. Act 2: persist negotiations, expose them as MCP tools, allow Claude's OAuth callback, then a public address
+3. Replacing the secondhand-marketplace pages and removing their code
 
 Still open: the hackathon's submission requirements and judging criteria.

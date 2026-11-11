@@ -93,6 +93,25 @@ API and costs money**: the second command is a small trial run. Credentials come
 environment (`ANTHROPIC_API_KEY`). Models default to `claude-opus-5-5`; override with
 `DEALOOP_FOUNDER_MODEL` and `DEALOOP_CREATOR_MODEL`. See [docs/SPEC.md §10.1](docs/SPEC.md).
 
+## Negotiation channel
+
+```sh
+npm run negotiate
+```
+
+```sh
+npm run negotiate -- --public 5 --floor 6.5 --ceiling 7.5 --volume 50
+```
+
+```sh
+npm run negotiate -- --rules
+```
+
+One private negotiation between a top creator's agent and the founder's agent. It prints every
+move and message, any move the core refused and why, and the deal that was recorded. With Claude
+it makes about four API calls (a few cents); `--rules` uses the rule-based negotiators and calls
+nothing. Transcripts are saved to `data/negotiations/`. See [docs/SPEC.md §9](docs/SPEC.md).
+
 ## Act 1 dashboard
 
 With the dev server running, open **http://localhost:3200/sim**. It plays back one campaign tick by

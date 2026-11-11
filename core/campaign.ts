@@ -39,7 +39,11 @@ export interface Conversion {
   externalUserId: string;
   status: ConversionStatus;
   channel: Channel;
-  /** Fixed price for deal-channel conversions; null for the public channel, which follows the current price. */
+  /**
+   * The negotiated floor for deal-channel conversions; null for the public channel.
+   * A deal conversion is paid max(deal price, current public price): a deal can
+   * only ever pay a creator more than the public channel, never less.
+   */
   dealPriceCents: Cents | null;
   createdAt: number;
 }
@@ -47,6 +51,8 @@ export interface Conversion {
 export interface Deal {
   creatorId: string;
   priceCents: Cents;
+  /** At most this many of the creator's conversions are paid on deal terms; later ones use the public price. */
+  volumeCap: number;
   createdAt: number;
 }
 
@@ -149,9 +155,22 @@ export function createCampaign(input: CampaignInput): Book {
 
 const isActive = (c: Conversion) => c.status === 'pending' || c.status === 'verified';
 
-/** The price a conversion is worth right now: its deal price, or the current public price (retroactive). */
+/** What a conversion would be worth if the public price were `publicCents`. */
+export function unitPriceAt(c: Conversion, publicCents: Cents): Cents {
+  return c.channel === 'deal' ? Math.max(c.dealPriceCents as Cents, publicCents) : publicCents;
+}
+
+/**
+ * The price a conversion is worth right now: the current public price (retroactive),
+ * or for a deal conversion the higher of its deal price and the public price.
+ */
 export function unitPrice(book: Book, c: Conversion): Cents {
-  return c.channel === 'deal' ? (c.dealPriceCents as Cents) : book.campaign.currentPriceCents;
+  return unitPriceAt(c, book.campaign.currentPriceCents);
+}
+
+/** Budget that active deal conversions would hold if the public price were `publicCents`. */
+export function dealCommittedAt(book: Book, publicCents: Cents): Cents {
+  return book.conversions.filter(c => isActive(c) && c.channel === 'deal').reduce((s, c) => s + unitPriceAt(c, publicCents), 0);
 }
 
 /** Budget held by pending and verified conversions at today's prices (SPEC §8). */
@@ -180,7 +199,7 @@ export function counts(book: Book): Counts {
     if (!isActive(c)) continue;
     if (c.channel === 'deal') {
       out.dealActive += 1;
-      out.dealCommittedCents += c.dealPriceCents as Cents;
+      out.dealCommittedCents += unitPrice(book, c);
     } else {
       out.publicActive += 1;
     }
@@ -214,9 +233,13 @@ export function recordConversion(book: Book, input: ConversionInput): Book {
   if (book.conversions.some(c => c.externalUserId === input.externalUserId)) {
     throw new CoreError('DUPLICATE_USER', 'This user has already converted for this campaign.');
   }
-  const deal = book.deals[input.creatorId];
+  const existing = book.deals[input.creatorId];
+  const dealUsed = existing
+    ? book.conversions.filter(c => c.creatorId === input.creatorId && c.channel === 'deal' && c.status !== 'rejected' && c.status !== 'unfunded').length
+    : 0;
+  const deal = existing && dealUsed < existing.volumeCap ? existing : undefined;
   const channel: Channel = deal ? 'deal' : 'public';
-  const price = deal ? deal.priceCents : campaign.currentPriceCents;
+  const price = deal ? Math.max(deal.priceCents, campaign.currentPriceCents) : campaign.currentPriceCents;
   const funded = committedCents(book) + price <= campaign.budgetCents;
   const conversion: Conversion = {
     id: input.id,
@@ -254,7 +277,7 @@ export const rejectConversion = (book: Book, id: string) => transition(book, id,
 /** Expected final users if the public price were `priceCents`, given an estimate of further public conversions. */
 export function projectedFinal(book: Book, priceCents: Cents, additionalPublic: number): number {
   const c = counts(book);
-  const publicCapacity = Math.max(0, Math.floor((book.campaign.budgetCents - c.dealCommittedCents) / priceCents));
+  const publicCapacity = Math.max(0, Math.floor((book.campaign.budgetCents - dealCommittedAt(book, priceCents)) / priceCents));
   return c.dealActive + Math.min(c.publicActive + additionalPublic, publicCapacity);
 }
 
@@ -287,7 +310,7 @@ export function decidePriceRaise(book: Book, supplyAtCurrent: number, supplyAtRa
   // B2. Mathematically the B1 check below already implies this (an over-budget
   // reprice caps projectedAtRaised below the current active count), so mutation
   // tests cannot fail on it alone. It stays as an explicit, readable guard.
-  if (c.publicActive * to + c.dealCommittedCents > campaign.budgetCents) {
+  if (c.publicActive * to + dealCommittedAt(book, to) > campaign.budgetCents) {
     return {...base, accepted: false, reason: 'Repricing existing conversions at the higher price would exceed the budget.'};
   }
   if (atRaised <= atCurrent) {
@@ -311,16 +334,21 @@ function raisePrice(book: Book, toCents: Cents, now: number): Book {
 export interface DealInput {
   creatorId: string;
   priceCents: Cents;
+  /** How many of the creator's conversions the deal price covers. */
+  volumeCap: number;
   /** Creator's lifetime verified conversions on the platform, supplied by the caller. */
   creatorVerifiedTotal: number;
   now: number;
 }
+
+export const MAX_DEAL_VOLUME = 100_000;
 
 function dealProblem(book: Book, input: DealInput): string | null {
   if (book.campaign.status !== 'open') return 'The campaign is closed.';
   if (!input.creatorId) return 'creatorId is required.';
   if (!isPositiveInt(input.priceCents)) return 'The deal price must be a positive integer number of cents.';
   if (input.priceCents > book.campaign.maxCacCents) return 'The deal price exceeds the maximum CAC.';
+  if (!(Number.isSafeInteger(input.volumeCap) && input.volumeCap >= 1 && input.volumeCap <= MAX_DEAL_VOLUME)) return 'The deal volume must be a positive whole number.';
   if (!(Number.isSafeInteger(input.creatorVerifiedTotal) && input.creatorVerifiedTotal >= DEAL_ELIGIBILITY_THRESHOLD)) {
     return `Private deals need at least ${DEAL_ELIGIBILITY_THRESHOLD} verified conversions.`;
   }
@@ -328,11 +356,15 @@ function dealProblem(book: Book, input: DealInput): string | null {
   return null;
 }
 
-/** Fix a creator's price for conversions recorded from now on. Earlier conversions keep their channel. */
+/**
+ * Give a creator a negotiated price floor for their next `volumeCap` conversions,
+ * recorded from now on. Earlier conversions keep their channel.
+ */
 export function createDeal(book: Book, input: DealInput): Book {
   const problem = dealProblem(book, input);
   if (problem) throw new CoreError('INVALID_DEAL', problem);
-  return {...book, deals: {...book.deals, [input.creatorId]: {creatorId: input.creatorId, priceCents: input.priceCents, createdAt: input.now}}};
+  const deal: Deal = {creatorId: input.creatorId, priceCents: input.priceCents, volumeCap: input.volumeCap, createdAt: input.now};
+  return {...book, deals: {...book.deals, [input.creatorId]: deal}};
 }
 
 // ---------------------------------------------------------------------------
@@ -350,6 +382,7 @@ const proposalSchema = z.discriminatedUnion('kind', [
     kind: z.literal('create_deal'),
     creatorId: z.string().min(1).max(200),
     priceCents: z.number().int().positive(),
+    volumeCap: z.number().int().min(1).max(MAX_DEAL_VOLUME),
     creatorVerifiedTotal: z.number().int().min(0),
   }).strict(),
 ]);

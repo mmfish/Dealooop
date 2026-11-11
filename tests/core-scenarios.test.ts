@@ -113,11 +113,11 @@ test('S7: a tampered agent output asking to settle at $50 is refused with no led
 
 test('C5 and §9: only creators with enough verified conversions get a deal, and deal prices stay fixed', () => {
   let book = createCampaign({...brief, deadline: NOW + 14 * DAY});
-  const tooNew = applyAgentProposal(book, {kind: 'create_deal', creatorId: 'small', priceCents: 700, creatorVerifiedTotal: DEAL_ELIGIBILITY_THRESHOLD - 1}, NOW);
+  const tooNew = applyAgentProposal(book, {kind: 'create_deal', creatorId: 'small', priceCents: 700, volumeCap: 50, creatorVerifiedTotal: DEAL_ELIGIBILITY_THRESHOLD - 1}, NOW);
   assert.equal(tooNew.accepted, false);
-  const overCap = applyAgentProposal(book, {kind: 'create_deal', creatorId: 'top', priceCents: 1_001, creatorVerifiedTotal: 200}, NOW);
+  const overCap = applyAgentProposal(book, {kind: 'create_deal', creatorId: 'top', priceCents: 1_001, volumeCap: 50, creatorVerifiedTotal: 200}, NOW);
   assert.equal(overCap.accepted, false);
-  const ok = applyAgentProposal(book, {kind: 'create_deal', creatorId: 'top', priceCents: 700, creatorVerifiedTotal: 200}, NOW);
+  const ok = applyAgentProposal(book, {kind: 'create_deal', creatorId: 'top', priceCents: 700, volumeCap: 50, creatorVerifiedTotal: 200}, NOW);
   assert.ok(ok.accepted, ok.reason);
   book = convert(ok.book, 4, 'top');
   book = convert(book, 4, 'public');
@@ -126,4 +126,20 @@ test('C5 and §9: only creators with enough verified conversions get a deal, and
   const ledger = settle(raised.book);
   assert.deepEqual(ledger.filter(e => e.creatorId === 'top').map(e => e.amountCents), [700, 700, 700, 700], 'deal price unaffected by public raises');
   assert.deepEqual(ledger.filter(e => e.creatorId === 'public').map(e => e.amountCents), [400, 400, 400, 400]);
+});
+
+test('§9: a deal covers only its volume, and never pays less than the public price', async () => {
+  let book = createCampaign({...brief, deadline: NOW + 14 * DAY});
+  const deal = applyAgentProposal(book, {kind: 'create_deal', creatorId: 'top', priceCents: 500, volumeCap: 3, creatorVerifiedTotal: 200}, NOW);
+  assert.ok(deal.accepted, deal.reason);
+  book = convert(deal.book, 5, 'top');
+  assert.deepEqual(book.conversions.map(c => c.channel), ['deal', 'deal', 'deal', 'public', 'public'], 'conversions past the cap use the public price');
+  // Push the public price above the deal price: deal conversions follow it up.
+  for (let i = 0; i < 4; i++) {
+    const r = applyAgentProposal(book, {kind: 'raise_price', supplyAtCurrent: 0, supplyAtRaised: 50}, NOW + DAY + i);
+    assert.ok(r.accepted, r.reason);
+    book = r.book;
+  }
+  assert.equal(book.campaign.currentPriceCents, 700);
+  assert.deepEqual(settle(book).map(e => e.amountCents), [700, 700, 700, 700, 700], 'a $5 deal pays $7 once the public price is $7');
 });
