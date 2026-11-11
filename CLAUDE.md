@@ -1,95 +1,115 @@
 # Dealoop
 
-按验证转化付费的推广市场。founder 一句话发目标，creator 的 agent 自助参与，
-每个被验证的转化即时结算。黑客松项目，提交日 2026-11-19。
+A promotion marketplace that pays per verified conversion. A founder states a goal in one
+sentence, creators' agents join on their own, and every verified conversion is settled
+immediately. Hackathon project; submission date 2026-11-19.
 
-规格见 [docs/SPEC.md](docs/SPEC.md)。不变量与验收场景见 [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md)。
+Specification: [docs/SPEC.md](docs/SPEC.md). Invariants and acceptance scenarios:
+[docs/ACCEPTANCE.md](docs/ACCEPTANCE.md). How the idea and the build got here:
+[docs/DEVELOPMENT-LOG.md](docs/DEVELOPMENT-LOG.md).
 
-## 不可违反的规则
+All project documents are in English (the demo and progress review are presented in English).
 
-1. **agent 不写账本。** 归因、预算占用、调价判定、结算全部是确定性代码。
-   Claude 只产生 proposal，由核心校验后执行，校验失败即拒绝并记录原因。
-2. **先写测试。** ACCEPTANCE.md 里的 A/B/C 系列不变量要先变成测试，再写实现。
-   每次改动后全部跑一遍。
-3. **金额一律用整数分（`*_cents`）。** 不允许浮点。
-4. **价格单调不降，且永不超过 `max_cac`。**
-5. **所有合成数据必须在 UI 和 README 上标注为合成数据。**
-6. 超出 SPEC.md §13 范围的功能不要实现，先问。
+## Rules that must not be broken
 
-## 这个仓库是从哪来的
+1. **Agents do not write to the ledger.** Attribution, budget commitment, pricing decisions and
+   settlement are all deterministic code. Claude only produces proposals; the core validates them
+   before acting, and a failed validation is refused with a recorded reason.
+2. **Tests first.** The A/B/C invariants in ACCEPTANCE.md become tests before the implementation.
+   Run the whole suite after every change.
+3. **All amounts are integer cents (`*_cents`).** No floating point for money.
+4. **The price never decreases and never exceeds `max_cac`.**
+5. **All synthetic data must be labeled as synthetic** in the UI and the README.
+6. Do not build anything beyond the scope in SPEC.md §13 without asking first.
+7. **Leave `/Users/SummerXia/Projects/dealoop-muse` and its server on port 3100 alone.** It is the
+   original prototype. This project runs on port 3200.
 
-由 [mmfish/DeaLoop](https://github.com/mmfish/DeaLoop) 导入并重开 git 历史。原项目是二手交易
-市场（Meta Muse 黑客松），**它本身不包含任何模型调用** —— agent 的智能完全在 Muse 那一侧，
-在仓库之外。所以"换成 Claude"不是替换一个 SDK，而是要新建一个此前不存在的 agent 层。
+## Where this repository came from
 
-导入基线（已验证）：Node 24、`npm ci` 成功、43 个测试全过、`build:aws` 成功、服务可启动。
+Imported from [mmfish/DeaLoop](https://github.com/mmfish/DeaLoop) with git history reset. The
+original project was a secondhand marketplace (Meta Muse hackathon), and **it contains no model
+calls at all**: the agents' intelligence lived entirely on Muse's side, outside the repository.
+So "switching to Claude" is not swapping an SDK; it means building an agent layer that did not
+exist before.
 
-| 继承自 Muse | 处置 |
+Import baseline (verified): Node 24, `npm ci` succeeds, 43 tests pass, `build:aws` succeeds, the
+server starts.
+
+| Inherited from Muse | Disposition |
 |---|---|
-| `backend/auth.ts` `backend/oauth.ts` `backend/oauth-scopes.ts` `backend/grants.ts` | 复用；scope 名称随新领域调整 |
-| `backend/mcp.ts` | 框架复用，工具定义全部重写 |
-| `backend/event-stream.ts` `backend/contracts.ts` `backend/policy.ts` | 复用 |
-| `backend/negotiation.ts` `backend/negotiation-spec.ts` | **复用为私下议价通道**（SPEC §9） |
-| `backend/shortlist*.ts` `backend/media.ts` 及对应页面 | 删除 |
-| `db/schema.ts` 的 posts / offers / deals | 替换为 campaigns / claims / conversions / ledger |
-| Sites/Cloudflare 部署脚手架（`worker/` `vite.config.ts` `scripts/` 里的 install/sites 系列、`lib/connector*`） | **已删除**（commit 见 git log） |
-| D1 形状的数据库接口（`runtime/sqlite.ts` 模拟、`cloudflare-env.d.ts` 的 `Env` 类型、`@cloudflare/workers-types`）与 Miniflare | **保留**：后端全部按 D1 的 `prepare/bind/batch` 写，5 个测试文件（api、api-key、auth、negotiation、security）用 Miniflare D1 做测试库。删掉它们等于重写测试，不属于清理 |
-| `public/images/*`（二手商品图） | 删除 |
+| `backend/auth.ts` `backend/oauth.ts` `backend/oauth-scopes.ts` `backend/grants.ts` | Reuse; rename scopes for the new domain |
+| `backend/mcp.ts` | Reuse the framework; rewrite every tool definition |
+| `backend/event-stream.ts` `backend/contracts.ts` `backend/policy.ts` | Reuse |
+| `backend/negotiation.ts` `backend/negotiation-spec.ts` | **Reuse as the private negotiation channel** (SPEC §9) |
+| `backend/shortlist*.ts` `backend/media.ts` and their pages | Delete (not yet done; they will go when the new pages replace the old ones) |
+| `db/schema.ts` posts / offers / deals | Superseded by the campaign tables added in migration 0008; the old tables are still present |
+| Sites/Cloudflare deploy scaffolding (`worker/`, `vite.config.ts`, the install/sites scripts in `scripts/`, `lib/connector*`) | **Deleted** (see git log) |
+| The D1-shaped database interface (`runtime/sqlite.ts` emulates it, the `Env` type in `cloudflare-env.d.ts`, `@cloudflare/workers-types`) and Miniflare | **Kept**: the whole backend is written against D1's `prepare/bind/batch`, and five test files (api, api-key, auth, negotiation, security) use Miniflare D1 as their database. Removing them means rewriting tests, which is not cleanup |
+| `public/images/*` (secondhand product photos) | Delete |
 
-**接入 Claude 的硬性前提已核实，见 [docs/SPEC.md §15](docs/SPEC.md)。** 两件事不满足：
-`backend/oauth.ts` 只接受写死的 Muse 回调（需放行 `https://claude.ai/api/mcp/auth_callback`，
-并建议同时放行 `https://claude.com/api/mcp/auth_callback`；同时要改 `consentCsp` 的 `form-action`
-和 `tests/mcp.test.ts`、`tests/oauth-refresh.test.ts`）；服务必须有公网 HTTPS 地址，
-且 `DEALOOP_ORIGIN` 要与之完全一致。
+**The hard requirements for connecting Claude have been checked; see
+[docs/SPEC.md §15](docs/SPEC.md).** Two are not met yet: `backend/oauth.ts` only accepts the
+hard-coded Muse callback (allow `https://claude.ai/api/mcp/auth_callback`, and also
+`https://claude.com/api/mcp/auth_callback`; update the `form-action` in `consentCsp`, and
+`tests/mcp.test.ts` and `tests/oauth-refresh.test.ts`), and the service needs a public HTTPS
+address that `DEALOOP_ORIGIN` matches exactly.
 
-demo 分两幕：第一幕是无头 Claude agent 的模拟器（规模），第二幕是 Claude.ai / Desktop 连接器里
-真人在环的议价（沿用 Muse demo 的形式）。两幕的 agent 都调用同一套 MCP 工具。
+The demo has two acts: Act 1 is the simulator driven by headless Claude agents (scale); Act 2 is
+human-in-the-loop negotiation in Claude.ai / Desktop connectors (the format of the Muse demo).
+Both acts' agents call the same MCP tools.
 
-## 目录
+## Layout
 
 ```
-docs/          规格、验收场景、原项目说明
-app/           Next.js 页面与路由（含 /mcp、/api/v1）
-backend/       服务端：认证、OAuth、MCP、REST、议价、事件
-core/          【新建】确定性核心：账本、归因、定价规则、状态机
-agents/        【新建】Claude 调用层：解析、supply 估计、参与判断、议价策略
-sim/           【新建】模拟器与对比实验
-db/ drizzle/   schema、migration、repository
-tests/         不变量测试与场景测试
-runtime/       运行时适配（只保留 AWS/SQLite）
+docs/          specification, acceptance scenarios, development log, original project README
+app/           Next.js pages and routes (including /mcp and /api/v1)
+backend/       server: authentication, OAuth, MCP, REST, negotiation, events
+core/          deterministic core: ledger, pricing rules, deals, settlement      [new]
+sim/           simulator and strategy comparison                                  [new]
+agents/        Claude layer: parsing, supply estimation, join decisions, negotiation   [to build]
+db/ drizzle/   schema, migrations, repository
+tests/         invariant tests and scenario tests
+runtime/       runtime adapters (AWS/SQLite only)
 ```
 
-## 开发顺序
+## Build order and status
 
-1. 清理：删掉上表里标记为删除的部分，`npm test` 保持全绿
-2. `db/` 新 schema 与 migration（campaigns / claims / conversions / ledger）
-3. `core/` + `tests/` 的 A、B 系列不变量 —— 没有它就没有可信的 demo
-4. `sim/` + 对比实验（S2、S3）—— pitch 的核心证据
-5. `agents/` 接入 Claude（解析、supply 估计、creator 判断）
-6. 议价通道改造（C 系列，S8–S10）—— 可降级为 P1
-7. UI 与种子数据
+1. ~~Cleanup: delete what the table above marks for deletion, keeping `npm test` green~~ — deploy scaffolding done; shortlist/media deferred to step 7
+2. ~~`db/` campaign schema and migration~~ — done (migration 0008)
+3. ~~`core/` + `tests/` for the A and B invariants~~ — done
+4. ~~`sim/` + comparison (S2, S3)~~ — done
+5. `agents/`: connect Claude (parsing, supply estimation, creator decisions)
+6. Negotiation channel (C series, S8–S10) — may drop to P1
+7. UI, seed data, and removal of the remaining secondhand-marketplace code
 
-## 术语
+## Local development
 
-- **公开价 / current_price**：campaign 当前的统一单价，所有公开通道的 creator 同价
-- **追溯统一价**：升价后，此前已验证的转化也按新价结算
-- **pending**：已产生但未通过验证的转化，按当前价占用预算额度
-- **deal**：头部 creator 单独议定的私下条款，不影响公开价
-- **mandate**：agent 可以自主决策的边界（预算、最高 CAC、最低到手价）
-- **supply(p, d)**：在价格 p、剩余 d 天下还能拿到多少转化的估计，由 agent 产出
+- Node 24: `nvm use` (the repo has `.nvmrc`)
+- Dev server: `DEALOOP_ORIGIN=http://localhost:3200 npm run dev:aws -- --port 3200`
+- Tests: `npm test`; types: `npm run check`; simulator: `npm run sim`
 
-## 排期（11/11–11/19）
+## Terms
 
-| 日期 | 内容 | 检查点 |
-|---|---|---|
-| 11/11 | 规格定稿、项目骨架、技术栈定 | |
-| 11/12–11/13 | `core` + A/B 不变量测试 | **11/13：测试全绿，否则议价降级为 P1** |
-| 11/14 | `sim` + 对比实验，产出 S2/S3 的数字 | |
-| 11/15 | `agents` 接入 Claude | **11/15：agent 跑通，否则砍自然语言策略** |
-| 11/16 | 议价通道（若未降级） | |
-| 11/17 | demo UI + 种子数据，**功能冻结** | |
-| 11/18 | 打磨、录 demo video、README | |
-| 11/19 | 缓冲、提交 | |
+- **Public price / current_price**: the campaign's current uniform unit price; every public-channel creator gets the same price
+- **Retroactive uniform price**: after a raise, conversions verified earlier are also paid the new price
+- **pending**: a conversion that has happened but not yet passed verification; it holds budget at the current price
+- **unfunded**: a conversion recorded after the budget was fully held; never paid
+- **deal**: private terms negotiated by a top creator; does not affect the public price
+- **mandate**: the bounds within which an agent may decide on its own (budget, max CAC, minimum take-home)
+- **supply(p, d)**: the estimate of how many more conversions price p will bring over the remaining time d; produced by the agent
 
-砍单规则：11/13 核心未绿 → 议价降 P1；11/15 agent 未跑通 → 只保留解析这一处
-Claude 调用；11/17 之后不加任何新功能。
+## Schedule (11/11–11/19)
+
+| Date | Work | Checkpoint | Status |
+|---|---|---|---|
+| 11/11 | Final spec, project skeleton, stack | | Done |
+| 11/12–11/13 | `core` + A/B invariant tests | **11/13: tests green, or negotiation drops to P1** | Done early (11/11) |
+| 11/14 | `sim` + comparison, producing the S2/S3 numbers | | Done early (11/11) |
+| 11/15 | `agents` connected to Claude | **11/15: agents working, or cut natural-language policy** | |
+| 11/16 | Negotiation channel (unless dropped) | | |
+| 11/17 | Demo UI + seed data, **feature freeze** | | |
+| 11/18 | Polish, record the demo video, README | | |
+| 11/19 | Buffer, submit | | |
+
+Cut rules: core not green by 11/13 → negotiation drops to P1; agents not working by 11/15 → keep
+only the parsing call to Claude; no new features after 11/17.

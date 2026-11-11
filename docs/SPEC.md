@@ -1,209 +1,229 @@
-# Dealoop MVP 规格（一页版）
+# Dealoop MVP Specification (one page)
 
-版本：2026-11-11 · 目标：11/19 黑客松提交
+Version: 2026-11-11 · Target: hackathon submission on 11/19
 
-## 1. 它是什么
+## 1. What it is
 
-一个按验证转化付费的推广市场。founder 用一句话说出目标，平台把它变成一个公开的
-campaign；creator 的 agent 自助参与，用带标识的链接推广；每产生一个被验证的转化，
-平台即时结算。
+A promotion marketplace that pays per verified conversion. A founder states a goal in one
+sentence, and the platform turns it into a public campaign. Creators' agents join on their
+own and promote with tracked links. Every verified conversion is settled immediately.
 
-MVP 只验证一件事：**在最高 CAC 以内把预算花完，并且比固定价格拿到更多用户。**
+The MVP proves one thing: **spend the budget within the maximum CAC, and get more users than a
+fixed price would.**
 
-## 2. 为什么需要 agent
+## 2. Why agents
 
-单笔交易金额极小（$5 量级），数量极多（几十到几百个 creator）。人类平台因此只能做
-标准化大颗粒的交易，长尾的小额推广根本不会发生。agent 把单笔交易成本降到接近零，
-这些交易才存在。
+Each transaction is tiny (around $5) and there are many of them (tens to hundreds of creators).
+A human platform can therefore only handle standardized, large-grained deals, so long-tail
+micro-promotion never happens. Agents bring the cost of each transaction close to zero, which
+is what makes these transactions exist at all.
 
-agent 负责判断，不负责记账。见 §7。
+Agents make judgments; they do not keep the books. See §7.
 
-## 3. 角色
+## 3. Roles
 
-| 角色 | 谁控制 | 能做什么 |
+| Role | Controlled by | What it does |
 |---|---|---|
-| founder agent | founder | 把一句话目标转成 campaign；按进度建议调价 |
-| creator agent | creator | 评估是否参与；获取推广链接；头部可发起议价 |
-| 平台 | 确定性代码 | 归因、预算、结算、状态机、不变量 |
+| Founder agent | Founder | Turns a one-sentence goal into a campaign; estimates supply for pricing |
+| Creator agent | Creator | Decides whether to join; gets a tracked link; top creators may negotiate |
+| Platform | Deterministic code | Attribution, budget, settlement, state machine, invariants |
 
-## 4. 核心流程
+## 4. Core flow
 
-1. founder 说："帮我的 app 拉新 100 个注册用户，越多越好。预算 $1000，CAC 不超过 $10。"
-2. founder agent 解析成 campaign。**deadline 为必填**，缺失时必须追问，不得猜测。
-3. campaign 以起始价进入公开池。
-4. creator agent 看到当前单价、剩余预算、截止日，自行决定参与，领取带标识的链接。
-5. 用户通过链接完成注册 → 产生一条 pending 转化。
-6. 验证通过 → 转化变为 verified，立即按**当前公开价**计入应付。
-7. 每个 tick（1 天）重算价格；价格只升不降，升价**追溯适用于全部已验证转化**。
-8. 截止日或预算用尽时 campaign 关闭，按最终价统一结算。
+1. The founder says: "Help my app get 100 new sign-ups, the more the better. Budget $1000, CAC no more than $10."
+2. The founder agent parses this into a campaign. **The deadline is required**; if it is missing the agent must ask, never guess.
+3. The campaign enters the public pool at its starting price.
+4. Creator agents see the current unit price, remaining budget and deadline, decide whether to join, and get a tracked link.
+5. A user signs up through the link → a `pending` conversion is recorded.
+6. Verification passes → the conversion becomes `verified` and is owed at the **current public price**.
+7. The price is recalculated every tick (6 hours). It only goes up, and a raise **applies retroactively to every verified conversion**.
+8. The campaign closes at the deadline or when the budget runs out, and settles at the final price.
 
-## 5. 数据模型
+## 5. Data model
+
+Implemented in `db/schema.ts` (migration `drizzle/0008_campaigns.sql`):
 
 ```
-Campaign:  id, founder_id, goal_count, budget_cents, max_cac_cents,
-           deadline, current_price_cents, status
-Creator:   id, name, joined_at, verified_conversion_total
-Link:      id, campaign_id, creator_id, token
-Conversion: id, link_id, external_user_id, created_at,
-            status (pending|verified|rejected), verified_at, seq
-Deal:      id, campaign_id, creator_id, price_cents, terms  # 私下议价通道
-LedgerEntry: id, campaign_id, conversion_id, creator_id, amount_cents, kind
+campaigns            id, owner_id, title, brief, product_url, goal_count, budget_cents,
+                     max_cac_cents, start_price_cents, step_cents, current_price_cents,
+                     deadline, status, next_seq
+campaign_links       id, campaign_id, creator_id, token
+conversions          id, campaign_id, link_id, creator_id, external_user_id, seq,
+                     status (pending|verified|rejected|unfunded), channel (public|deal),
+                     deal_price_cents
+campaign_deals       campaign_id, creator_id, price_cents, offer_id   # private negotiation channel
+price_changes        campaign_id, from_cents, to_cents, rationale
+proposal_rejections  campaign_id, actor, kind, reason               # shown in the UI
+ledger_entries       id, campaign_id, conversion_id (unique), creator_id, seq, channel, amount_cents
 ```
 
-`Conversion.seq` 是全局递增序号，**结算顺序以它为准**。
+`conversions.seq` increases within a campaign, and **settlement follows it**.
 
-## 6. 定价算法（MVP 的核心）
+## 6. Pricing algorithm (the core of the MVP)
 
-常量（可配置）：
+Constants (configurable):
 
 - `start_price = round(0.3 × max_cac)`
 - `step = round(0.1 × max_cac)`
-- `tick = 6 小时`（原定 1 天；模拟器敏感性测试见 §10，24 小时在薄市场里爬价太慢，2 小时会被噪声推高价格）
+- `tick = 6 hours` (originally 1 day; see the simulator sensitivity results in §10: 24 hours climbs too slowly in thin markets, 2 hours lets noise push the price too high)
 
-每个 tick：
+Every tick:
 
-1. 估计在价格 p、剩余天数 d 下还能拿到的转化数 `supply(p, d)`。**这一步由 agent 做**，
-   输入是历史转化曲线和当前参与的 creator 数，输出是一个区间估计。
-2. 计算两种选择下的预期最终用户数：
+1. Estimate `supply(p, d)`: how many more conversions the campaign will get at price p over the remaining time d. **The agent does this step.** Its input is the conversion history; its output is an estimate.
+2. Compute the expected final user count for both choices:
 
    ```
    projected(p) = min(current_count + supply(p, d),  budget / p)
    ```
 
-3. 仅当 `projected(p + step) > projected(p)` 时升价。
-4. 升价前必须通过预算守恒检查：
+3. Raise the price only if `projected(p + step) > projected(p)`.
+4. Before raising, the budget must still hold:
 
    ```
    (verified_count + pending_count) × (p + step) ≤ budget
    ```
 
-   不通过则不升价。
+   If it does not, the price stays.
 
-5. 价格永远 `≤ max_cac`，且**单调不降**。
+5. The price is always `≤ max_cac` and **never decreases**.
 
-**为什么要追溯统一价**：价格只升不降且人人同价，早期参与的 creator 不会因为先下注而
-吃亏，也就没有"等涨价再参与"的动机。代价是升价要消耗已发生转化的预算，所以第 4 步
-的守恒检查不可省略。
+**Why a retroactive uniform price**: because the price only rises and everyone gets the same
+price, creators who join early are never worse off for moving first, so nobody has a reason to
+wait for a raise. The cost is that a raise also spends budget on conversions that already
+happened, which is why the check in step 4 cannot be skipped. (In practice step 3 already
+implies step 4; the explicit check stays as a guard. See `core/campaign.ts`.)
 
-## 7. agent 与账本的分界
+## 7. Where the agent ends and the ledger begins
 
-| 交给 Claude | 交给确定性代码 |
+| Given to Claude | Given to deterministic code |
 |---|---|
-| 一句话 → campaign 字段 | 归因（链接 → creator） |
-| `supply(p, d)` 的估计 | 升价与否的最终判定（§6 第 3、4 步） |
-| creator 侧"要不要参，值不值"的判断 | 预算占用与结算 |
-| 议价中的让步策略与话术 | deal 的合法性校验与落库 |
+| One sentence → campaign fields | Attribution (link → creator) |
+| Estimating `supply(p, d)` | The final decision to raise or not (§6 steps 3 and 4) |
+| The creator's "should I join, is it worth it" judgment | Budget commitment and settlement |
+| Concession strategy and wording in negotiation | Validating and storing the deal |
 
-**agent 永远不写账本。** 它只产生 proposal，由代码校验后执行；校验失败就拒绝，
-并记录拒绝原因（demo 里要展示这个）。
+**Agents never write to the ledger.** They only produce proposals, which code validates before
+acting on them. A proposal that fails validation is refused, and the reason is recorded (the
+demo shows this).
 
-## 8. 待验证转化如何占用预算
+## 8. How pending conversions hold budget
 
-pending 转化按**当前价**占用预算额度，和 verified 一样参与 §6 第 4 步的检查。
+Pending conversions hold budget at the **current price**, and count in the §6 step 4 check
+just like verified ones.
 
-- pending → verified：占用转为应付。
-- pending → rejected：释放额度。
+- pending → verified: the hold becomes an amount owed.
+- pending → rejected: the hold is released.
 
-这样可以防止"验证期内超发"导致结算时超支。
+This prevents over-issuing during the verification window, which would otherwise overspend at
+settlement.
 
-**准入控制**：记录一个新转化时，若"已占用额度 + 该转化单价 > 预算"，它在记录时即标为
-`unfunded`，永不支付（`core/campaign.ts` 的 `recordConversion`）。
+**Admission control**: when a new conversion is recorded, if "budget already held + this
+conversion's unit price > budget", it is marked `unfunded` at that moment and never paid
+(`recordConversion` in `core/campaign.ts`).
 
-## 9. 私下议价通道（P0-lite，可降级为 P1）
+## 9. Private negotiation channel (P0-lite, may drop to P1)
 
-`verified_conversion_total ≥ 50` 的 creator，其 agent 可以发起议价：
+A creator with `verified_conversion_total ≥ 50` may have their agent open a negotiation:
 
-- 议题：单价、保底量、截止日、阶梯奖励
-- 回合上限 2 轮，双方各带 mandate（creator 的最低到手价、founder 的价格弹性，互相不可见）
-- 成交价 `≤ max_cac`，落成一条 `Deal`，该 creator 之后按 deal 价结算，不影响公开价
-- 不得泄露对方的私有约束（有对应测试）
+- Issues: unit price, guaranteed volume, deadline, tiered bonuses
+- At most 2 rounds; each side carries a mandate (the creator's minimum take-home, the founder's price flexibility), hidden from the other side
+- The agreed price is `≤ max_cac` and becomes a `Deal`; that creator is then paid at the deal price, and the public price is unaffected
+- Neither side's private constraints may be revealed (there are tests for this)
 
-## 10. 模拟器与对比实验
+## 10. Simulator and comparison
 
-代码在 `sim/`，运行 `npm run sim`。每个种子生成一个合成市场：每个 creator 带隐藏的最低接单价、
-日均转化率和产能上限。creator 的规则是"当前价 ≥ 自己的最低价就推"（追溯统一价下等待没有好处）。
-转化验证滞后 24 小时，5% 被拒。所有策略面对同样的市场和同样的随机到达，差别只来自定价。
+The code is in `sim/`; run it with `npm run sim`. Each seed generates a synthetic market: every
+creator has a hidden minimum price, a daily conversion rate and a capacity. A creator's rule is
+"promote once the current price meets my minimum" (with a retroactive uniform price, waiting
+gains nothing). Verification lags 24 hours and rejects 5%. Every strategy faces the same markets
+and the same random arrivals, so differences come from pricing alone.
 
-**数据全部是合成的**，分布是事先定的假设，不是真实 creator 的测量结果。
+**All of this data is synthetic.** The distributions are assumptions set in advance, not
+measurements of real creators.
 
-2026-11-11 的结果（100 个种子，brief 为 100 个用户 / $1000 / 最高 CAC $10 / 14 天，tick 6 小时）：
+Results as of 2026-11-11 (100 seeds; brief: 100 users / $1000 / max CAC $10 / 14 days; 6-hour tick):
 
-| 市场 | 策略 | 平均用户数 | 平均 CAC | 达成目标 | 胜过固定 $10 |
+| Market | Strategy | Mean users | Avg CAC | Goal met | Beats fixed $10 |
 |---|---|---|---|---|---|
-| baseline（30 人，$3–$12） | **动态** | **114.5** | $8.70 | 100% | 82% |
-| | 固定 $10 | 100.0 | $10.00 | 100% | — |
-| | 固定 $8（事后最优，founder 事先无从知道） | 117.9 | $8.00 | 87% | 87% |
-| thick（80 人，$2–$10） | **动态** | **210.3** | $4.74 | 100% | 100% |
-| | 固定 $4（事后最优） | 212.7 | $4.00 | 100% | 100% |
-| thin（12 人，$5–$14） | 动态 | 25.5 | $10.00 | 0% | 23% |
-| | 固定 $10（事后最优） | 27.2 | $10.00 | 0% | — |
+| baseline (30 creators, $3–$12) | **Dynamic** | **114.5** | $8.70 | 100% | 82% |
+| | Fixed $10 | 100.0 | $10.00 | 100% | — |
+| | Fixed $8 (best in hindsight; a founder cannot know this in advance) | 117.9 | $8.00 | 87% | 87% |
+| thick (80 creators, $2–$10) | **Dynamic** | **210.3** | $4.74 | 100% | 100% |
+| | Fixed $4 (best in hindsight) | 212.7 | $4.00 | 100% | 100% |
+| thin (12 creators, $5–$14) | Dynamic | 25.5 | $10.00 | 0% | 23% |
+| | Fixed $10 (best in hindsight) | 27.2 | $10.00 | 0% | — |
 
-怎么读这张表：
+How to read this table:
 
-- **动态价不需要知道市场长什么样**，就能接近事后才知道的最优固定价，并且在 baseline 里达标率更高
-  （固定 $8 只有 87% 的情况能拉到 100 个，动态是 100%）。这才是 pitch 的论点，而不是"比 $10 多 14%"。
-- **薄市场里动态价略差于直接出 $10**：前一两天花在爬价上，而这个市场在 $10 也凑不够 100 人。
-  机制没法凭空造出供给。pitch 里要主动说这一点。
-- 价格只升不降，所以噪声导致的过早升价无法撤回。tick 太短（2 小时）时这一点会让 baseline 变差。
+- **The dynamic price needs no knowledge of the market** and still comes close to the best fixed price, which is only knowable in hindsight. In the baseline market it also meets the goal more reliably (fixed $8 reaches 100 users in only 87% of runs; dynamic does in 100%). This is the pitch, not "14% more than $10".
+- **In a thin market the dynamic price does slightly worse than offering $10 from the start**: the first day or two go into climbing, and this market cannot reach 100 users even at $10. The mechanism cannot create supply out of nothing. The pitch should say this up front.
+- The price only rises, so an early raise caused by noise cannot be undone. With a very short tick (2 hours) this makes the baseline result worse.
 
-供给估计目前用的是透明的启发式规则（`sim/estimator.ts` 的 `HeuristicEstimator`：观测近 48 小时的
-转化速率，并假设价格弹性 1.5）。Claude 版估计器实现同一个接口，见 §7。
+Supply estimation currently uses a transparent heuristic (`HeuristicEstimator` in
+`sim/estimator.ts`: it measures the conversion rate over the last 48 hours and **assumes** a
+price elasticity of 1.5). A Claude-backed estimator implements the same interface; see §7.
 
-## 11. demo：两幕
+## 11. Demo: two acts
 
-**第一幕 · 规模（模拟器）。** 无头 Claude agent 驱动约 30 个合成 creator，时间轴压缩，
-几分钟跑完 14 天。大盘展示用户数、平均 CAC、预算使用率，以及与"固定 $10"的对比（§10）。
-论点：交易成本趋近于零，长尾小额交易才成立。
+**Act 1 · Scale (simulator).** Headless Claude agents drive about 30 synthetic creators on a
+compressed timeline, running 14 days in a few minutes. A dashboard shows users, average CAC,
+budget used, and the comparison with fixed $10 (§10). The argument: with near-zero
+transaction costs, long-tail micro-deals become viable.
 
-**第二幕 · 真人在环的议价（Claude 窗口）。** 沿用 Muse 版 demo 的形式：几个 Claude
-窗口（founder、头部 creator），主人用自然语言授权，agent 在 mandate 内自主，**超出
-mandate 就回头问主人**（例如"对方要 $7，高于你的最低价，要接受吗？"），确认后落成 `Deal`（§9）。
-这一幕通过 Claude.ai / Claude Desktop 的自定义连接器接入平台的 MCP，接入要求见 §15。
+**Act 2 · Human-in-the-loop negotiation (Claude windows).** This reuses the format of the
+Muse demo: a few Claude windows (the founder and a top creator). Each owner authorizes their
+agent in natural language; the agent acts on its own within its mandate, and **goes back to
+its owner when something falls outside the mandate** (for example, "They want $7, which is
+above your floor. Accept?"). Once confirmed, it becomes a `Deal` (§9). This act connects to the
+platform's MCP through Claude.ai / Claude Desktop custom connectors; see §15 for the
+requirements.
 
-- 种子 campaign 就是**推广 Dealoop 自己**（顺便回答冷启动问题）
-- 约 30 个 creator agent，其中 1 个满足议价门槛
-- 第二幕的 founder 与 creator 是两个独立的 Claude 会话，各自连接各自的账号
+- The seed campaign is **promoting Dealoop itself** (which also answers the cold-start question)
+- About 30 creator agents, one of whom meets the negotiation threshold
+- In Act 2 the founder and the creator are two separate Claude sessions, each connected to their own account
 
-## 12. 前置条件（pitch 里要明说）
+## 12. Preconditions (state these in the pitch)
 
-- 平台已解决冷启动，供需两侧都有足够参与者
-- 转化验证的反作弊能力已存在
-- 结算与合规（资金、税务、广告披露）已存在
+- The platform has already solved cold start; both sides have enough participants
+- Anti-fraud verification of conversions already exists
+- Settlement and compliance (money movement, tax, ad disclosure) already exist
 
 ## 13. Out of scope
 
-明确不做，但在 pitch 里作为扩展方向提及：
+Explicitly not built, but mentioned in the pitch as directions for expansion:
 
-- 批次 / 预留 / 配额认领
-- 转介绍与派单 override（其正确位置是**平台自己的增长 campaign**，不是 founder campaign）
-- 盈余分配、质量奖金
-- 平台费模型（MVP 写死为 0）
-- 有数量上限的 founder 分支（MVP 一律按"越多越好"处理）
-- 黑名单、违规处理、争议仲裁
-- 真实社交平台 API 接入（roster 用假数据）
-- 真实支付与打款
+- Batches / reservations / quota claiming
+- Referral and dispatch overrides (their right home is **the platform's own growth campaign**, not a founder's campaign)
+- Surplus sharing, quality bonuses
+- Platform fee model (fixed at 0 in the MVP)
+- Founders with a hard cap on quantity (the MVP treats every founder as "the more the better")
+- Blacklists, enforcement, dispute resolution
+- Real social-platform API integration (the roster is fake data)
+- Real payments and payouts
 
-## 14. 仍未决
+## 14. Still open
 
-- 黑客松的提交要求与评审标准
-- 第二幕的公网地址方案（隧道还是部署），决定 `DEALOOP_ORIGIN` 的取值
+- The hackathon's submission requirements and judging criteria
+- How Act 2 gets a public address (tunnel or deployment), which decides `DEALOOP_ORIGIN`
 
-## 15. Claude 接入要求（第二幕）
+## 15. Claude connector requirements (Act 2)
 
-以下来自 Claude 官方文档 [Authentication for connectors](https://claude.com/docs/connectors/building/authentication)，
-查证日期 2026-11-11：
+From Claude's official documentation,
+[Authentication for connectors](https://claude.com/docs/connectors/building/authentication),
+checked 2026-11-11:
 
-| 要求 | 现状（继承自 Muse） |
+| Requirement | Current state (inherited from Muse) |
 |---|---|
-| 回调 `https://claude.ai/api/mcp/auth_callback`（web、Desktop、mobile 共用）；文档提示将来可能改为 `https://claude.com/api/mcp/auth_callback`，两个都放行 | **不满足**：`backend/oauth.ts` 只接受写死的 Muse 回调，注册时 `redirect_uris` 必须恰好等于它 |
-| 支持动态客户端注册（DCR）或 CIMD | 有 DCR（`/oauth/register`），但绑定了上一条 |
-| PKCE S256，token 端点接受 `application/x-www-form-urlencoded` | 有 S256；测试里 `/oauth/token` 用 form 编码调用，满足 |
-| 授权请求带 `resource`，且必须与用户填入的 MCP 地址完全一致（含路径） | 有资源绑定 |
-| 未授权请求返回 `401` 且带 `WWW-Authenticate: Bearer resource_metadata=...` | 满足（已在运行中的服务上验证）：未授权的 `/mcp` 返回 `401` 与 `WWW-Authenticate: Bearer resource_metadata=...`，元数据里 `resource` 即 `/mcp` 地址 |
-| 刷新令牌轮换，失效时返回 `invalid_grant` | 有轮换与 `invalid_grant` |
-| 发现、注册、token 端点 10 秒内响应，刷新 30 秒 | 本地 SQLite，预计满足 |
-| 服务必须是**公网 HTTPS**，不能重定向到别的主机或解析到内网地址 | **不满足**：目前只在 localhost 运行 |
-| 若做 IP 白名单，Anthropic 出口网段为 `160.79.104.0/21` | 暂不需要 |
-| Claude Code 用回环回调（`http://localhost:<port>/callback`），端口任意 | 非第二幕必需，顺手兼容即可 |
+| Callback `https://claude.ai/api/mcp/auth_callback` (shared by web, Desktop, mobile); the docs say it may move to `https://claude.com/api/mcp/auth_callback`, so allow both | **Not met**: `backend/oauth.ts` only accepts the hard-coded Muse callback; registration requires `redirect_uris` to equal it exactly |
+| Dynamic Client Registration (DCR) or CIMD | DCR exists (`/oauth/register`) but is tied to the previous row |
+| PKCE S256; the token endpoint accepts `application/x-www-form-urlencoded` | S256 exists; the tests call `/oauth/token` form-encoded, so this is met |
+| Authorization requests carry `resource`, which must exactly match the MCP URL the user entered (path included) | Resource binding exists |
+| Unauthenticated requests get `401` with `WWW-Authenticate: Bearer resource_metadata=...` | Met (checked against the running service): an unauthenticated `/mcp` returns `401` with `WWW-Authenticate: Bearer resource_metadata=...`, and the metadata's `resource` is the `/mcp` URL |
+| Refresh tokens rotate; an invalid one returns `invalid_grant` | Rotation and `invalid_grant` exist |
+| Discovery, registration and token endpoints answer within 10 seconds; refresh within 30 | Local SQLite; expected to be met |
+| The service must be **public HTTPS**, must not redirect to another host, and must not resolve to a private address | **Not met**: it only runs on localhost today |
+| If allowlisting by IP, Anthropic's egress range is `160.79.104.0/21` | Not needed yet |
+| Claude Code uses a loopback callback (`http://localhost:<port>/callback`) on any port | Not required for Act 2; support it while we are there |
 
-`DEALOOP_ORIGIN` 必须等于用户在 Claude 里填的那个公网地址，否则 `resource` 校验会失败。
+`DEALOOP_ORIGIN` must equal the public address the user enters in Claude, or the `resource`
+check fails.

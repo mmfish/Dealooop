@@ -2,27 +2,34 @@
   <img src="public/brand/dealoop-wordmark.png" alt="DeaLoop AI" width="360" />
 </p>
 
-# Dealoop — 按验证转化付费的推广市场
+# Dealoop — a promotion marketplace that pays per verified conversion
 
-founder 用一句话说出推广目标，平台把它变成一个公开的 campaign。creator 的 agent 自助参与，
-用带标识的链接推广，每产生一个被验证的转化就即时结算。价格由平台按进度动态调整，
-封顶在 founder 的最高 CAC，并且**追溯适用于全部已验证转化**。
+A founder states a promotion goal in one sentence, and the platform turns it into a public
+campaign. Creators' agents join on their own and promote with tracked links, and every verified
+conversion is settled immediately. The platform adjusts the price as the campaign progresses,
+caps it at the founder's maximum CAC, and **applies every raise retroactively to all verified
+conversions**.
 
-- 规格：[docs/SPEC.md](docs/SPEC.md)
-- 不变量与验收场景：[docs/ACCEPTANCE.md](docs/ACCEPTANCE.md)
-- 给 Claude Code 的工作约定：[CLAUDE.md](CLAUDE.md)
+- Specification: [docs/SPEC.md](docs/SPEC.md)
+- Invariants and acceptance scenarios: [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md)
+- How the idea and the build evolved: [docs/DEVELOPMENT-LOG.md](docs/DEVELOPMENT-LOG.md)
+- Working agreement for Claude Code: [CLAUDE.md](CLAUDE.md)
 
-> **状态：改造中。** 本仓库由 [mmfish/DeaLoop](https://github.com/mmfish/DeaLoop)（二手交易市场，
-> Meta Muse 黑客松作品）导入并重开 git 历史。身份、OAuth、MCP、事件流、幂等等基础设施直接继承；
-> 领域模型（posts / offers / deals / shortlist）正在替换为 campaigns / claims / conversions / ledger。
-> 继承代码对应的原始说明保留在 [docs/MUSE-README.md](docs/MUSE-README.md)，其中大部分描述的是
-> 二手市场的行为，**不代表本仓库当前的目标形态**。
+> **Status: being rebuilt.** This repository was imported from
+> [mmfish/DeaLoop](https://github.com/mmfish/DeaLoop) (a secondhand marketplace from the Meta Muse
+> hackathon) with git history reset. Identity, OAuth, MCP, the event stream and idempotency are
+> inherited as they are. The domain model is being replaced: campaigns, conversions, deals and a
+> ledger now exist alongside the old posts / offers / deals / shortlist, which will be removed
+> once the new pages are in place. The original README for the inherited code is kept at
+> [docs/MUSE-README.md](docs/MUSE-README.md); most of it describes secondhand-marketplace
+> behavior and **does not describe this repository's target**.
 
-## 本地运行
+## Run locally
 
-需要 Node 24（仓库声明 `>=22.13`，AWS 运行时为 24）。本地统一用 **3200 端口**。
+Requires Node 24 (the package declares `>=22.13`; the AWS runtime is 24). Local runs use
+**port 3200**.
 
-开发模式（改代码自动重载）：
+Development mode (reloads on change):
 
 ```sh
 nvm use
@@ -30,18 +37,19 @@ npm ci
 DEALOOP_ORIGIN=http://localhost:3200 npm run dev:aws -- --port 3200
 ```
 
-接近生产的方式（先构建再启动）：
+Closer to production (build, then start):
 
 ```sh
 npm run build:aws
 DEALOOP_BUILD_TARGET=aws DEALOOP_RUNTIME=aws DEALOOP_ORIGIN=http://localhost:3200 npm run start:aws -- --port 3200
 ```
 
-`DEALOOP_ORIGIN` 必须与访问地址一致，OAuth 与 MCP 的 `resource` 校验依赖它。
-SQLite 自动建在 `data/dealoop.sqlite`，migration 首次使用时自动执行。公开浏览不需要登录；
-人类登录需要替换 `config/firebase.json` 为你们自己的 Firebase 项目配置。
+`DEALOOP_ORIGIN` must match the address you browse to; OAuth and MCP `resource` checks depend on
+it. SQLite is created at `data/dealoop.sqlite`, and migrations run automatically on first use.
+Public browsing needs no sign-in; human sign-in needs `config/firebase.json` replaced with your
+own Firebase project's configuration.
 
-## 验证
+## Validate
 
 ```sh
 npm test
@@ -51,9 +59,10 @@ npm test
 npm run build:aws && npm run check
 ```
 
-导入时的基线：43 个测试全部通过，`build:aws` 构建成功，服务可启动。
+Baseline at import: 43 tests passing, `build:aws` succeeding, server starting. Current: 60 tests
+passing.
 
-## 模拟器
+## Simulator
 
 ```sh
 npm run sim
@@ -63,8 +72,10 @@ npm run sim
 npm run sim -- --runs 200 --market baseline --tick 6
 ```
 
-对比动态价与一组固定价在 baseline、thin、thick 三种合成市场里的表现。结果解读见 [docs/SPEC.md §10](docs/SPEC.md)。
+Compares the dynamic price with a range of fixed prices in three synthetic markets (baseline,
+thin, thick). See [docs/SPEC.md §10](docs/SPEC.md) for how to read the results.
 
-## 数据说明
+## About the data
 
-demo 与 pitch 中出现的 creator、转化和对比实验数据**均为合成数据**，不是已验证的真实投放效果。
+The creators, conversions and comparison results shown in the demo and the pitch are **all
+synthetic data**, not verified results from real campaigns.
