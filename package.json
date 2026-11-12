@@ -17,7 +17,9 @@
     "sim": "node --experimental-transform-types --no-warnings sim/cli.ts",
     "sim:claude": "node --experimental-transform-types --no-warnings sim/claude-cli.ts",
     "negotiate": "node --experimental-transform-types --no-warnings sim/negotiate-cli.ts",
-    "brief": "node --experimental-transform-types --no-warnings sim/brief-cli.ts"
+    "brief": "node --experimental-transform-types --no-warnings sim/brief-cli.ts",
+    "mcp:stdio": "node --experimental-transform-types --no-warnings mcp/stdio.ts",
+    "mcp:config": "node --experimental-transform-types --no-warnings mcp/desktop-config.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.8.0",

@@ -53,8 +53,8 @@ Estimates for two people; today is 2026-11-11 and the deadline is 2026-11-19.
 | Order | Work | Estimate | Unblocks |
 |---|---|---|---|
 | 1 | ~~Persistence~~ — done: `db/campaign-store.ts`, migration 0009 (feed events, creator profiles, deal volume cap, write guard) | 1 day | everything |
-| 2 | Connect a Claude window to the local MCP server (Claude Desktop with a local MCP bridge first; public HTTPS and Claude.ai's OAuth callback last) | 0.5–1.5 days | beats 1, 4, 6, 7 |
-| 3 | MCP tools: `create_campaign` (brief parsing on the server), `answer_creator_question` / pending approvals, `campaign_report` | 1 day | beats 1, 4, 7 |
+| 2 | ~~Connect a Claude window~~ — done for the founder: local stdio server for Claude Desktop (`mcp/stdio.ts`, `docs/CLAUDE-DESKTOP.md`); public HTTPS and Claude.ai's OAuth callback last | 0.5–1.5 days | beats 1, 4, 6, 7 |
+| 3 | MCP tools: ~~`post_campaign`, `campaign_report`~~ (done; Claude extracts, the platform grounds every value without a model call), then creator questions and pending approvals | 1 day | beats 1, 4, 7 |
 | 4 | Platform pages: campaign list, live event feed (SSE), results page; the `/sim` dashboard reused for the replay | 1.5 days | beats 2, 3, 5, 7 |
 | 5 | Matching on the real campaign, plus the clarification protocol and escalation to the founder | 1–1.5 days | beats 3, 4 |
 | 6 | Split simulation run (days 1–5, deal, days 6–14) against stored records | 0.5–1 day | beat 5 |

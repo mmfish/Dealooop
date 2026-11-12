@@ -87,6 +87,7 @@ runtime/       runtime adapters (AWS/SQLite only)
 - Node 24: `nvm use` (the repo has `.nvmrc`)
 - Dev server: `DEALOOP_ORIGIN=http://localhost:3200 npm run dev:aws -- --port 3200`
 - Tests: `npm test`; types: `npm run check`; simulator: `npm run sim`
+- Claude Desktop (local MCP over stdio): `npm run mcp:config -- --install`, see `docs/CLAUDE-DESKTOP.md`
 - Simulator with Claude agents: `npm run sim:claude -- --seed 1` (calls the API and costs money; add `--creators 5 --days 2` for a cheap trial)
 - Agent tests never call the network: they use a fake `JsonClient` (`tests/agents.test.ts`)
 
