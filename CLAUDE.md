@@ -75,7 +75,7 @@ runtime/       runtime adapters (AWS/SQLite only)
 ## Build order and status
 
 1. ~~Cleanup: delete what the table above marks for deletion, keeping `npm test` green~~ — deploy scaffolding done; shortlist/media deferred to step 7
-2. ~~`db/` campaign schema and migration~~ — done (migration 0008)
+2. ~~`db/` campaign schema and migration~~ — done (migrations 0008, 0009); `db/campaign-store.ts` is the only code that reads or writes the campaign tables
 3. ~~`core/` + `tests/` for the A and B invariants~~ — done
 4. ~~`sim/` + comparison (S2, S3)~~ — done
 5. ~~`agents/`: connect Claude~~ — done: brief parsing (`npm run brief`), supply estimation and creator decisions (`npm run sim:claude`)

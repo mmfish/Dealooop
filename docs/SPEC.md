@@ -60,23 +60,37 @@ got asked for a maximum CAC rather than assuming $2.50. One call each, under a c
 
 ## 5. Data model
 
-Implemented in `db/schema.ts` (migration `drizzle/0008_campaigns.sql`):
+Implemented in `db/schema.ts` (migrations `drizzle/0008_campaigns.sql` and `0009_campaign_store.sql`),
+read and written only through `db/campaign-store.ts`:
 
 ```
 campaigns            id, owner_id, title, brief, product_url, goal_count, budget_cents,
                      max_cac_cents, start_price_cents, step_cents, current_price_cents,
-                     deadline, status, next_seq
+                     deadline, status, next_seq, version
 campaign_links       id, campaign_id, creator_id, token
 conversions          id, campaign_id, link_id, creator_id, external_user_id, seq,
                      status (pending|verified|rejected|unfunded), channel (public|deal),
                      deal_price_cents
-campaign_deals       campaign_id, creator_id, price_cents, offer_id   # private negotiation channel
+campaign_deals       campaign_id, creator_id, price_cents, volume_cap, offer_id   # private negotiation channel
 price_changes        campaign_id, from_cents, to_cents, rationale
 proposal_rejections  campaign_id, actor, kind, reason               # shown in the UI
 ledger_entries       id, campaign_id, conversion_id (unique), creator_id, seq, channel, amount_cents
+campaign_events      sequence, campaign_id, kind, actor, summary, data_json   # the public feed
+campaign_commits     campaign_id, version (unique together)               # write guard
+creator_profiles     user_id, handle, platform, niche, audience, followers, prior_verified, demo
 ```
 
 `conversions.seq` increases within a campaign, and **settlement follows it**.
+
+**How writes happen.** The store loads a campaign's `Book`, runs a pure function from
+`core/campaign.ts` on it, and writes only the difference, in one atomic batch. It refuses
+differences the core never produces (changing the budget, deleting a conversion, editing a deal).
+Each batch first claims the next version in `campaign_commits`, so two writers that loaded the
+same version cannot both commit; within one process, writes to a campaign are also queued, so
+writers do not starve each other in retries. For a deal, the creator's track record
+(`prior_verified` plus verified conversions on the platform) comes from the database, never from
+the agent's proposal. Settlement writes the ledger in the same batch that closes the campaign,
+and settling again writes nothing.
 
 ## 6. Pricing algorithm (the core of the MVP)
 
@@ -257,6 +271,10 @@ Prompt fix after the first run: with Dealoop as the seed product, two creator ag
 says the agent works only for the creator. A later small run showed no such lines.
 
 ## 11. Demo: two acts
+
+> **Superseded by [DEMO-FLOW.md](DEMO-FLOW.md)** (2026-11-11): one campaign from the founder's
+> sentence to settlement, live wherever possible, with the negotiation inside the simulated run.
+> The two acts below are kept for history; the dashboard paragraph still applies.
 
 **Act 1 · Scale (simulator).** Headless Claude agents drive about 30 synthetic creators on a
 compressed timeline, running 14 days in a few minutes. A dashboard shows users, average CAC,

@@ -140,6 +140,8 @@ That led to the mechanism the MVP now tests:
 | Negotiation channel (after `ba5c78a`) | Built the private deal channel: a deterministic protocol enforcing C1–C5, Claude negotiators for both sides, a rule-based fallback, and `npm run negotiate`. Deals gained a volume cap and now never pay less than the public price. | Changing deal pay to max(deal, public) broke the A8 invariant test, which still assumed the old price: the random walk caught the semantic change immediately. Mutation checks (removing the last-round rule, the leak check, or the mandate check) each failed the suite. First live run: $9.00 × 60 → $6.50 × 40 → $7.25 × 40 → accepted, 4 calls, about $0.05. |
 | Brief parsing (after `630d270`) | Built the founder agent's intake: one sentence in, campaign fields out, or a question when something required is missing. `npm run brief`. | The design choice was to make Claude quote the words behind every value and let code reject anything it cannot find in the text, so a helpful guess becomes a question. Live: the S1 sentence was asked for its deadline; the Chinese version produced the same campaign; a brief with no CAC was asked for one instead of getting $2.50 computed. Under a cent per call. |
 
+| Campaign store (after `33f80ae`) | Agreed the demo flow (`docs/DEMO-FLOW.md`): one campaign, live from the founder's sentence to settlement. Built its first dependency: `db/campaign-store.ts` persists the core's `Book`, with a feed of events, creator profiles and a write guard. Migration 0009. | A randomized test applies the same operations to the database and to an in-memory Book and compares them after every step. Removing the write guard made the cross-process test fail, so it is load-bearing. A probe also found that with only the guard, 25 simultaneous writers in one process left 20 failing after retries; a per-campaign queue fixed that. Drizzle's generated migration copied a column the old table did not have; fixed by hand and checked on a populated 0008 database. |
+
 All results are from synthetic markets. The heuristic estimator assumes a price elasticity of 1.5;
 the Claude estimator forecasts from observations instead.
 
@@ -147,7 +149,7 @@ the Claude estimator forecasts from observations instead.
 
 ## Part 5 · What is next
 
-1. Act 2: campaign and negotiation MCP tools, persistence, Claude's OAuth callback, then a public address
+1. The build order in `docs/DEMO-FLOW.md`: persistence is done; next, connecting a Claude window and the campaign MCP tools
 2. Replacing the secondhand-marketplace pages and removing their code
 
 Still open: the hackathon's submission requirements and judging criteria.

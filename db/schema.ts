@@ -55,7 +55,7 @@ export const campaigns=sqliteTable('campaigns',{
  goalCount:integer('goal_count').notNull(),budgetCents:integer('budget_cents').notNull(),maxCacCents:integer('max_cac_cents').notNull(),
  startPriceCents:integer('start_price_cents').notNull(),stepCents:integer('step_cents').notNull(),currentPriceCents:integer('current_price_cents').notNull(),
  deadline:integer('deadline').notNull(),status:text('status').notNull().default('open'),nextSeq:integer('next_seq').notNull().default(1),
- demo:integer('demo').notNull().default(0),createdAt:integer('created_at').notNull(),
+ version:integer('version').notNull().default(0),demo:integer('demo').notNull().default(0),createdAt:integer('created_at').notNull(),
 },t=>[
  index('campaign_browse').on(t.status,t.createdAt),index('campaign_owner').on(t.ownerId),
  check('campaign_status',sql`${t.status} IN ('open','closed')`),
@@ -79,8 +79,8 @@ export const conversions=sqliteTable('conversions',{
 ]);
 export const campaignDeals=sqliteTable('campaign_deals',{
  campaignId:text('campaign_id').notNull().references(()=>campaigns.id),creatorId:text('creator_id').notNull().references(()=>users.id),
- priceCents:integer('price_cents').notNull(),offerId:text('offer_id').references(()=>offers.id),createdAt:integer('created_at').notNull(),
-},t=>[uniqueIndex('campaign_deal_creator').on(t.campaignId,t.creatorId),check('campaign_deal_price',sql`${t.priceCents}>0`)]);
+ priceCents:integer('price_cents').notNull(),volumeCap:integer('volume_cap').notNull().default(1),offerId:text('offer_id').references(()=>offers.id),createdAt:integer('created_at').notNull(),
+},t=>[uniqueIndex('campaign_deal_creator').on(t.campaignId,t.creatorId),check('campaign_deal_price',sql`${t.priceCents}>0`),check('campaign_deal_volume',sql`${t.volumeCap}>=1`)]);
 export const priceChanges=sqliteTable('price_changes',{
  sequence:integer('sequence').primaryKey({autoIncrement:true}),campaignId:text('campaign_id').notNull().references(()=>campaigns.id),
  fromCents:integer('from_cents').notNull(),toCents:integer('to_cents').notNull(),rationale:text('rationale'),createdAt:integer('created_at').notNull(),
@@ -96,3 +96,20 @@ export const ledgerEntries=sqliteTable('ledger_entries',{
  conversionId:text('conversion_id').notNull().unique().references(()=>conversions.id),creatorId:text('creator_id').notNull().references(()=>users.id),
  seq:integer('seq').notNull(),channel:text('channel').notNull(),amountCents:integer('amount_cents').notNull(),createdAt:integer('created_at').notNull(),
 },t=>[index('ledger_campaign').on(t.campaignId,t.seq),check('ledger_amount',sql`${t.amountCents}>0`)]);
+// Optimistic-concurrency guard: every committed change to a campaign inserts its
+// next version here, so two writers that loaded the same version cannot both commit.
+export const campaignCommits=sqliteTable('campaign_commits',{
+ campaignId:text('campaign_id').notNull().references(()=>campaigns.id),version:integer('version').notNull(),createdAt:integer('created_at').notNull(),
+},t=>[uniqueIndex('campaign_commit_version').on(t.campaignId,t.version)]);
+// The campaign's public feed: what the platform page and the founder's agent show.
+export const campaignEvents=sqliteTable('campaign_events',{
+ sequence:integer('sequence').primaryKey({autoIncrement:true}),campaignId:text('campaign_id').notNull().references(()=>campaigns.id),
+ kind:text('kind').notNull(),actor:text('actor').notNull(),summary:text('summary').notNull(),dataJson:text('data_json').notNull().default('{}'),createdAt:integer('created_at').notNull(),
+},t=>[index('campaign_event_feed').on(t.campaignId,t.sequence)]);
+// A creator's public profile, used by matching. prior_verified seeds a track record
+// from before this deployment (labeled demo data); live verified conversions add to it.
+export const creatorProfiles=sqliteTable('creator_profiles',{
+ userId:text('user_id').primaryKey().references(()=>users.id),handle:text('handle').notNull().unique(),platform:text('platform').notNull(),
+ niche:text('niche').notNull(),audience:text('audience').notNull().default(''),followers:integer('followers').notNull().default(0),
+ priorVerified:integer('prior_verified').notNull().default(0),demo:integer('demo').notNull().default(0),createdAt:integer('created_at').notNull(),
+},t=>[check('creator_profile_counts',sql`${t.followers}>=0 AND ${t.priorVerified}>=0`)]);

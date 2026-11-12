@@ -23,7 +23,7 @@ export class SQLiteDatabase {
         return statement.execute();
       });
       this.raw.exec('COMMIT');
-      if (statements.some(s => /\bINSERT\s+INTO\s+negotiation_events\b/i.test(s.sql))) {
+      if (statements.some(s => /\bINSERT\s+INTO\s+(negotiation_events|campaign_events)\b/i.test(s.sql))) {
         for (const listener of this.eventListeners) queueMicrotask(()=>{try{listener();}catch{/* A listener cannot undo a committed transaction. */}});
       }
       return results;
