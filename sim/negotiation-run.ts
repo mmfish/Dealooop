@@ -6,6 +6,7 @@
 import {openNegotiation, settleNegotiation, step, canPropose, type CreatorMandate, type FounderMandate, type Mandates, type Move, type Negotiation, type Side, type Terms, type Turn} from '../core/negotiation.ts';
 import type {Book} from '../core/campaign.ts';
 import type {CreatorProfile} from './market.ts';
+import type {CampaignStore} from '../db/campaign-store.ts';
 
 export interface NegotiationView {
   side: Side;
@@ -131,4 +132,60 @@ export class RuleNegotiator implements Negotiator {
     }
     return {action: 'reject', message: 'We will stay on the public price for now.'};
   }
+}
+
+// ---------------------------------------------------------------------------
+// The same loop on a stored campaign (DEMO-FLOW beat 6 fallback): every move
+// goes through CampaignStore.negotiationMove, exactly as the MCP tools do, so
+// the campaign page shows the outcome. Each side's limit is passed per move.
+// ---------------------------------------------------------------------------
+
+export interface StoredNegotiationInput {
+  store: CampaignStore;
+  campaignId: string;
+  creatorId: string;
+  mandates: Mandates;
+  creatorAgent: Negotiator;
+  founderAgent: Negotiator;
+  now: () => number;
+  attempts?: number;
+  onEvent?: (e: NegotiationEvent) => void;
+}
+
+export async function runStoredNegotiation(input: StoredNegotiationInput): Promise<{negotiation: Negotiation; events: NegotiationEvent[]}> {
+  const {store, mandates} = input;
+  const stored = await store.openNegotiation(input.campaignId, input.creatorId, input.now());
+  let n = stored.negotiation;
+  const profile = (await store.creator(input.creatorId))!;
+  const events: NegotiationEvent[] = [];
+  const push = (e: NegotiationEvent) => { events.push(e); input.onEvent?.(e); };
+  for (let guard = 0; n.status === 'open' && guard < 8; guard++) {
+    const side = n.turn;
+    const agent = side === 'creator' ? input.creatorAgent : input.founderAgent;
+    const mandate = side === 'creator' ? mandates.creator : mandates.founder;
+    const s = await store.require(input.campaignId);
+    const c = s.book.campaign;
+    const committed = s.book.conversions.filter(x => x.status === 'pending' || x.status === 'verified').length * c.currentPriceCents;
+    const campaign = {
+      productName: s.meta.title, productPitch: s.meta.brief, publicPriceCents: c.currentPriceCents, maxCacCents: c.maxCacCents,
+      remainingBudgetCents: Math.max(0, c.budgetCents - committed), hoursLeft: Math.max(0, (c.deadline - input.now()) / 3_600_000), goalCount: c.goalCount,
+    };
+    const creator = {id: profile.userId, handle: profile.handle, niche: profile.niche, platform: profile.platform, followers: profile.followers, verifiedTotal: n.creatorVerifiedTotal};
+    let feedback: string | undefined;
+    let done = false;
+    for (let attempt = 1; attempt <= (input.attempts ?? 2) && !done; attempt++) {
+      const move = await agent.move({side, round: n.round, canPropose: canPropose(n, side), onTable: n.onTable, proposedBy: n.proposedBy, history: n.history, campaign, creator, mandate, feedback});
+      const r = await store.negotiationMove(n.id, side, move, mandate, input.now());
+      if (r.ok) { push({side, attempt, move}); n = r.negotiation; done = true; }
+      else { push({side, attempt, move, refused: r.reason}); feedback = r.reason; }
+    }
+    if (!done) {
+      const move: Move = {action: 'reject', message: 'We could not find terms within my owner’s limits, so I am ending this negotiation.'};
+      const r = await store.negotiationMove(n.id, side, move, mandate, input.now());
+      push({side, attempt: 0, move, fellBack: true, refused: r.ok ? undefined : r.reason});
+      if (r.ok) n = r.negotiation;
+      else break;
+    }
+  }
+  return {negotiation: n, events};
 }

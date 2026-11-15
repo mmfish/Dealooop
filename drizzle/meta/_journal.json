@@ -71,6 +71,27 @@
       "when": 1794448592093,
       "tag": "0009_campaign_store",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1794464684115,
+      "tag": "0010_campaign_image",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1794720877219,
+      "tag": "0011_campaign_questions",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1794771849772,
+      "tag": "0012_campaign_negotiations",
+      "breakpoints": true
     }
   ]
 }

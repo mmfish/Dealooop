@@ -13,12 +13,18 @@ import {
   rejectConversion as coreReject, settle, verifyConversion as coreVerify,
   type Book, type Conversion, type Deal, type LedgerEntry, type ProposalResult,
 } from '../core/campaign.ts';
+import {
+  NegotiationError, openNegotiation as coreOpenNegotiation, settleNegotiation, step,
+  type CreatorMandate, type FounderMandate, type Mandates, type Negotiation, type Side, type StepResult,
+} from '../core/negotiation.ts';
 
 export interface CampaignMeta {
   ownerId: string;
   title: string;
   brief: string;
   productUrl: string;
+  /** Cover image for the campaign page: an http(s) URL or a path on this site; empty for none. */
+  imageUrl: string;
   demo: boolean;
   version: number;
 }
@@ -66,6 +72,36 @@ export interface CampaignLink {
   createdAt: number;
 }
 
+export interface CampaignQuestion {
+  id: string;
+  campaignId: string;
+  creatorId: string;
+  question: string;
+  status: 'pending' | 'answered';
+  answer: string;
+  createdAt: number;
+  answeredAt: number | null;
+}
+
+const toQuestion = (r: Record<string, unknown>): CampaignQuestion => ({
+  id: String(r.id), campaignId: String(r.campaign_id), creatorId: String(r.creator_id), question: String(r.question),
+  status: String(r.status) as CampaignQuestion['status'], answer: String(r.answer ?? ''), createdAt: Number(r.created_at),
+  answeredAt: r.answered_at === null || r.answered_at === undefined ? null : Number(r.answered_at),
+});
+
+export interface StoredNegotiation {
+  negotiation: Negotiation;
+  campaignId: string;
+  creatorId: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+const toNegotiation = (r: Record<string, unknown>): StoredNegotiation => ({
+  negotiation: JSON.parse(String(r.state_json)) as Negotiation, campaignId: String(r.campaign_id), creatorId: String(r.creator_id),
+  createdAt: Number(r.created_at), updatedAt: Number(r.updated_at),
+});
+
 export class StoreError extends Error {
   constructor(readonly code: string, message: string) {
     super(message);
@@ -80,6 +116,7 @@ export interface NewCampaign {
   title: string;
   brief: string;
   productUrl: string;
+  imageUrl?: string;
   goalCount: number;
   budgetCents: number;
   maxCacCents: number;
@@ -114,6 +151,13 @@ function serialize<T>(db: object, key: string, task: () => Promise<T>): Promise<
   void tail.then(() => { if (byKey!.get(key) === tail) byKey!.delete(key); });
   return run;
 }
+/** An http(s) URL or a site path ("/brand/x.png"); anything else becomes ''. */
+export function safeImageUrl(value: string): string {
+  const v = value.trim().slice(0, 500);
+  if (/^\/(?!\/)[\w\-./%]*$/.test(v)) return v;
+  try { const u = new URL(v); return u.protocol === 'https:' || u.protocol === 'http:' ? u.toString() : ''; } catch { return ''; }
+}
+
 const dollars = (c: number) => '$' + (c / 100).toFixed(2);
 const newId = (prefix: string) => `${prefix}_${globalThis.crypto.randomUUID().replace(/-/g, '')}`;
 const isVersionConflict = (e: unknown) => /campaign_commits|campaign_commit_version/.test(String((e as Error)?.message ?? e));
@@ -171,7 +215,7 @@ export class CampaignStore {
     };
     return {
       book,
-      meta: {ownerId: str(row.owner_id), title: str(row.title), brief: str(row.brief), productUrl: str(row.product_url), demo: num(row.demo) === 1, version: num(row.version)},
+      meta: {ownerId: str(row.owner_id), title: str(row.title), brief: str(row.brief), productUrl: str(row.product_url), imageUrl: str(row.image_url ?? ''), demo: num(row.demo) === 1, version: num(row.version)},
       links: Object.fromEntries(links.map(l => [str(l.creator_id), str(l.id)])),
     };
   }
@@ -190,7 +234,7 @@ export class CampaignStore {
     return rows.map(r => ({
       id: str(r.id), title: str(r.title), ownerId: str(r.owner_id), status: str(r.status),
       goalCount: num(r.goal_count), budgetCents: num(r.budget_cents), maxCacCents: num(r.max_cac_cents),
-      currentPriceCents: num(r.current_price_cents), deadline: num(r.deadline), demo: num(r.demo) === 1, createdAt: num(r.created_at),
+      currentPriceCents: num(r.current_price_cents), deadline: num(r.deadline), imageUrl: str(r.image_url ?? ''), demo: num(r.demo) === 1, createdAt: num(r.created_at),
     }));
   }
 
@@ -200,6 +244,23 @@ export class CampaignStore {
       sequence: num(r.sequence), campaignId: str(r.campaign_id), kind: str(r.kind), actor: str(r.actor),
       summary: str(r.summary), data: JSON.parse(str(r.data_json)) as Record<string, unknown>, createdAt: num(r.created_at),
     }));
+  }
+
+  /** The newest events, oldest first. */
+  async recentEvents(campaignId: string, limit = 200): Promise<CampaignEvent[]> {
+    const rows = await this.all('SELECT * FROM (SELECT * FROM campaign_events WHERE campaign_id=? ORDER BY sequence DESC LIMIT ?) ORDER BY sequence', campaignId, Math.min(Math.max(1, limit), 1000));
+    return rows.map(r => ({
+      sequence: num(r.sequence), campaignId: str(r.campaign_id), kind: str(r.kind), actor: str(r.actor),
+      summary: str(r.summary), data: JSON.parse(str(r.data_json)) as Record<string, unknown>, createdAt: num(r.created_at),
+    }));
+  }
+
+  /** The newest event's sequence, for one campaign or across all of them; 0 when there are none. */
+  async latestSequence(campaignId?: string): Promise<number> {
+    const r = campaignId
+      ? await this.db.prepare('SELECT COALESCE(MAX(sequence),0) AS s FROM campaign_events WHERE campaign_id=?').bind(campaignId).first<{s: number}>()
+      : await this.db.prepare('SELECT COALESCE(MAX(sequence),0) AS s FROM campaign_events').first<{s: number}>();
+    return num(r?.s ?? 0);
   }
 
   async ledger(campaignId: string): Promise<LedgerEntry[]> {
@@ -250,9 +311,9 @@ export class CampaignStore {
     const title = input.title.trim().slice(0, 200) || 'Untitled campaign';
     await this.db.batch([
       this.db.prepare('INSERT INTO users(id,name,created_at) VALUES(?,?,?) ON CONFLICT(id) DO NOTHING').bind(input.ownerId, input.ownerName ?? input.ownerId, input.now),
-      this.db.prepare(`INSERT INTO campaigns(id,owner_id,title,brief,product_url,goal_count,budget_cents,max_cac_cents,start_price_cents,step_cents,current_price_cents,deadline,status,next_seq,version,demo,created_at)
-                       VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,0,?,?)`)
-        .bind(id, input.ownerId, title, input.brief.slice(0, 4000), input.productUrl.slice(0, 500), c.goalCount, c.budgetCents, c.maxCacCents, c.startPriceCents, c.stepCents, c.currentPriceCents, c.deadline, c.status, book.nextSeq, input.demo ? 1 : 0, input.now),
+      this.db.prepare(`INSERT INTO campaigns(id,owner_id,title,brief,product_url,image_url,goal_count,budget_cents,max_cac_cents,start_price_cents,step_cents,current_price_cents,deadline,status,next_seq,version,demo,created_at)
+                       VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,0,?,?)`)
+        .bind(id, input.ownerId, title, input.brief.slice(0, 4000), input.productUrl.slice(0, 500), safeImageUrl(input.imageUrl ?? ''), c.goalCount, c.budgetCents, c.maxCacCents, c.startPriceCents, c.stepCents, c.currentPriceCents, c.deadline, c.status, book.nextSeq, input.demo ? 1 : 0, input.now),
       this.eventStatement(id, {
         kind: 'campaign.posted', actor: 'founder-agent',
         summary: `${title}: ${c.goalCount} sign-ups wanted, budget ${dollars(c.budgetCents)}, up to ${dollars(c.maxCacCents)} each. Starting price ${dollars(c.startPriceCents)}.`,
@@ -260,6 +321,148 @@ export class CampaignStore {
       }, input.now),
     ]);
     return this.require(id);
+  }
+
+  // -------------------------------------------------------------------------
+  // Questions from creators (DEMO-FLOW beat 4). No money moves here: a
+  // question pauses one creator's join until the founder answers in their
+  // own words; the answer becomes the wording that creator may use.
+  // -------------------------------------------------------------------------
+
+  async askQuestion(campaignId: string, creatorId: string, question: string, now: number): Promise<CampaignQuestion> {
+    const {book} = await this.require(campaignId);
+    if (book.campaign.status !== 'open' || now >= book.campaign.deadline) throw new StoreError('CAMPAIGN_CLOSED', 'The campaign is not accepting creators.');
+    const profile = await this.creator(creatorId);
+    if (!profile) throw new StoreError('NO_PROFILE', 'Only creators with a profile can ask.');
+    const text = question.trim().slice(0, 600);
+    if (!text) throw new StoreError('INVALID_MUTATION', 'The question is empty.');
+    const open = (await this.questions(campaignId, 'pending')).find(q => q.creatorId === creatorId);
+    if (open) return open;
+    const q: CampaignQuestion = {id: newId('q'), campaignId, creatorId, question: text, status: 'pending', answer: '', createdAt: now, answeredAt: null};
+    await this.db.batch([
+      this.db.prepare('INSERT INTO campaign_questions(id,campaign_id,creator_id,question,status,answer,created_at) VALUES(?,?,?,?,?,?,?)').bind(q.id, campaignId, creatorId, text, 'pending', '', now),
+      this.eventStatement(campaignId, {kind: 'clarification.asked', actor: profile.handle, summary: `${profile.handle} asked the founder: “${text}”`, data: {creatorId, questionId: q.id}}, now),
+    ]);
+    return q;
+  }
+
+  async questions(campaignId: string, status?: 'pending' | 'answered'): Promise<CampaignQuestion[]> {
+    const rows = status
+      ? await this.all('SELECT * FROM campaign_questions WHERE campaign_id=? AND status=? ORDER BY created_at', campaignId, status)
+      : await this.all('SELECT * FROM campaign_questions WHERE campaign_id=? ORDER BY created_at', campaignId);
+    return rows.map(toQuestion);
+  }
+
+  async question(id: string): Promise<CampaignQuestion | null> {
+    const r = await this.db.prepare('SELECT * FROM campaign_questions WHERE id=?').bind(id).first<Row>();
+    return r ? toQuestion(r) : null;
+  }
+
+  /** Records the founder's answer, then the creator joins with it as their approved wording. Answering twice is refused. */
+  async answerQuestion(id: string, answer: string, now: number): Promise<{question: CampaignQuestion; link: CampaignLink}> {
+    const q = await this.question(id);
+    if (!q) throw new StoreError('NOT_FOUND', 'No such question.');
+    if (q.status !== 'pending') throw new StoreError('CONFLICT', 'This question has already been answered.');
+    const text = answer.trim().slice(0, 600);
+    if (!text) throw new StoreError('INVALID_MUTATION', 'The answer is empty.');
+    const handle = (await this.creator(q.creatorId))?.handle ?? q.creatorId;
+    // The conditional update is the claim: of two racing answers, only one changes a row.
+    const update = await this.db.prepare("UPDATE campaign_questions SET status='answered', answer=?, answered_at=? WHERE id=? AND status='pending'").bind(text, now, id).run();
+    if (!update.meta.changes) throw new StoreError('CONFLICT', 'This question has already been answered.');
+    await this.addEvent(q.campaignId, {kind: 'clarification.answered', actor: 'founder', summary: `The founder answered ${handle}: “${text}”`, data: {creatorId: q.creatorId, questionId: id}}, now);
+    const link = await this.join(q.campaignId, q.creatorId, now, `using the founder's wording: “${text}”`);
+    return {question: {...q, status: 'answered', answer: text, answeredAt: now}, link};
+  }
+
+  // -------------------------------------------------------------------------
+  // Private negotiations (DEMO-FLOW beat 6). core/negotiation.ts judges every
+  // move. Each side's private limit is passed in by that side's own agent for
+  // the move it is making and is never stored, so the platform cannot show it
+  // to the other side. Only an agreement touches the campaign, as a Deal.
+  // -------------------------------------------------------------------------
+
+  /** A creator opens a negotiation; the creator moves first. An open one for the same creator is returned as is. */
+  async openNegotiation(campaignId: string, creatorId: string, now: number): Promise<StoredNegotiation> {
+    const {book} = await this.require(campaignId);
+    const profile = await this.creator(creatorId);
+    if (!profile) throw new StoreError('NO_PROFILE', 'Only creators with a profile can negotiate.');
+    const open = (await this.negotiations(campaignId, 'open')).find(n => n.creatorId === creatorId);
+    if (open) return open;
+    let n: Negotiation;
+    try {
+      n = coreOpenNegotiation(book, {id: newId('neg'), creatorId, creatorVerifiedTotal: await this.creatorVerifiedTotal(creatorId)});
+    } catch (e) {
+      if (e instanceof NegotiationError) throw new StoreError(e.code, e.message);
+      throw e;
+    }
+    await this.db.batch([
+      this.db.prepare('INSERT INTO campaign_negotiations(id,campaign_id,creator_id,status,state_json,turns,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)')
+        .bind(n.id, campaignId, creatorId, 'open', JSON.stringify(n), 0, now, now),
+      this.eventStatement(campaignId, {kind: 'deal.negotiation_opened', actor: profile.handle, summary: `${profile.handle} opened a private deal negotiation with the founder.`, data: {creatorId, negotiationId: n.id}}, now),
+    ]);
+    return {negotiation: n, campaignId, creatorId, createdAt: now, updatedAt: now};
+  }
+
+  async negotiation(id: string): Promise<StoredNegotiation | null> {
+    const r = await this.db.prepare('SELECT * FROM campaign_negotiations WHERE id=?').bind(id).first<Row>();
+    return r ? toNegotiation(r) : null;
+  }
+
+  async negotiations(campaignId: string, status?: Negotiation['status']): Promise<StoredNegotiation[]> {
+    const rows = status
+      ? await this.all('SELECT * FROM campaign_negotiations WHERE campaign_id=? AND status=? ORDER BY created_at', campaignId, status)
+      : await this.all('SELECT * FROM campaign_negotiations WHERE campaign_id=? ORDER BY created_at', campaignId);
+    return rows.map(toNegotiation);
+  }
+
+  /**
+   * One move by `side`, judged by the core against that side's own limit. A refused
+   * move changes nothing. An agreement records the Deal and the negotiation in one
+   * step: the negotiation row is claimed first, and released again if the core
+   * refuses the deal.
+   */
+  async negotiationMove(id: string, side: Side, move: unknown, own: CreatorMandate | FounderMandate, now: number): Promise<StepResult> {
+    const stored = await this.negotiation(id);
+    if (!stored) throw new StoreError('NOT_FOUND', 'No such negotiation.');
+    const before = stored.negotiation;
+    const {book} = await this.require(stored.campaignId);
+    // The other side's limit is not known here and not needed: the core checks only the mover's own.
+    const mandates: Mandates = side === 'creator'
+      ? {creator: own as CreatorMandate, founder: {maxPriceCents: Number.MAX_SAFE_INTEGER, maxVolume: Number.MAX_SAFE_INTEGER}}
+      : {creator: {minPriceCents: 0}, founder: own as FounderMandate};
+    const r = step(book, before, side, move, mandates, now);
+    if (!r.ok) return r;
+    const n = r.negotiation;
+    const claim = await this.db.prepare('UPDATE campaign_negotiations SET status=?, state_json=?, turns=?, updated_at=? WHERE id=? AND turns=?')
+      .bind(n.status, JSON.stringify(n), n.history.length, now, id, before.history.length).run();
+    if (!claim.meta.changes) throw new StoreError('CONFLICT', 'The negotiation changed in the meantime; read it again.');
+    const handle = (await this.creator(stored.creatorId))?.handle ?? stored.creatorId;
+    if (n.status === 'failed') {
+      await this.addEvent(stored.campaignId, {kind: 'deal.negotiation_ended', actor: side === 'creator' ? handle : 'founder', summary: `No private deal with ${handle}; they stay on the public price.`, data: {creatorId: stored.creatorId, negotiationId: id}}, now);
+    } else if (n.status === 'agreed' && n.agreed) {
+      const terms = n.agreed;
+      try {
+        await this.mutate(stored.campaignId, s => ({
+          book: settleNegotiation(s.book, n, now), result: undefined,
+          events: [{kind: 'deal.created', actor: side === 'creator' ? handle : 'founder', summary: `Private deal: at least ${dollars(terms.priceCents)} per sign-up for ${handle}'s next ${terms.volumeCap}. The public price stays ${dollars(s.book.campaign.currentPriceCents)}.`, data: {creatorId: stored.creatorId, negotiationId: id, priceCents: terms.priceCents, volumeCap: terms.volumeCap}}],
+        }), now, side === 'creator' ? handle : 'founder');
+      } catch (e) {
+        await this.db.prepare('UPDATE campaign_negotiations SET status=?, state_json=?, turns=?, updated_at=? WHERE id=?')
+          .bind(before.status, JSON.stringify(before), before.history.length, now, id).run();
+        throw e;
+      }
+      // A deal only pays through a tracked link, so the creator joins if they have not yet.
+      await this.join(stored.campaignId, stored.creatorId, now, 'private deal agreed').catch(() => undefined);
+    }
+    return r;
+  }
+
+  /** Metadata only (no money), so it is not a Book mutation. */
+  async setImage(campaignId: string, imageUrl: string) {
+    const url = safeImageUrl(imageUrl);
+    if (imageUrl && !url) throw new StoreError('INVALID_MUTATION', 'The image must be an http(s) URL or a path on this site.');
+    const r = await this.db.prepare('UPDATE campaigns SET image_url=? WHERE id=?').bind(url, campaignId).run();
+    if (!r.meta.changes) throw new StoreError('NOT_FOUND', 'No such campaign.');
   }
 
   async upsertCreator(p: CreatorProfile & {name?: string; now: number}) {
@@ -283,7 +486,7 @@ export class CampaignStore {
     try {
       await this.db.batch([
         this.db.prepare('INSERT INTO campaign_links(id,campaign_id,creator_id,token,created_at) VALUES(?,?,?,?,?)').bind(link.id, campaignId, creatorId, link.token, now),
-        this.eventStatement(campaignId, {kind: 'creator.joined', actor: profile.handle, summary: `${profile.handle} joined${note ? `: ${note}` : '.'}`, data: {creatorId}}, now),
+        this.eventStatement(campaignId, {kind: 'creator.joined', actor: profile.handle, summary: `${profile.handle} joined${note ? `: ${note}` : '.'}`, data: {creatorId, ...(note ? {note} : {})}}, now),
       ]);
     } catch (e) {
       const raced = await this.link(campaignId, creatorId);
@@ -297,7 +500,7 @@ export class CampaignStore {
     const profile = await this.creator(creatorId);
     await this.require(campaignId);
     const handle = profile?.handle ?? creatorId;
-    await this.addEvent(campaignId, {kind: 'creator.declined', actor: handle, summary: `${handle} declined: ${reason}`, data: {creatorId}}, now);
+    await this.addEvent(campaignId, {kind: 'creator.declined', actor: handle, summary: `${handle} declined: ${reason}`, data: {creatorId, reason}}, now);
   }
 
   async addEvent(campaignId: string, event: EventInput, now: number) {
@@ -309,13 +512,14 @@ export class CampaignStore {
     const link = await this.linkByToken(token);
     if (!link) throw new StoreError('UNKNOWN_LINK', 'No such tracked link.');
     const id = newId('cnv');
+    const handle = (await this.creator(link.creatorId))?.handle ?? link.creatorId;
     return this.mutate(link.campaignId, ({book}) => {
       const next = coreRecordConversion(book, {id, creatorId: link.creatorId, externalUserId, now});
       const c = next.conversions[next.conversions.length - 1];
       return {
         book: next, result: c,
         events: [{kind: c.status === 'unfunded' ? 'conversion.unfunded' : 'conversion.recorded', actor: 'platform',
-          summary: c.status === 'unfunded' ? 'A sign-up arrived after the budget was fully committed; it will not be paid.' : `Sign-up #${c.seq} via ${link.creatorId}${c.channel === 'deal' ? ' (deal)' : ''}.`,
+          summary: c.status === 'unfunded' ? 'A sign-up arrived after the budget was fully committed; it will not be paid.' : `Sign-up #${c.seq} via ${handle}${c.channel === 'deal' ? ' (deal)' : ''}.`,
           data: {conversionId: c.id, creatorId: c.creatorId, seq: c.seq, status: c.status, channel: c.channel}}],
       };
     }, now);
@@ -338,9 +542,11 @@ export class CampaignStore {
    */
   async applyProposal(campaignId: string, proposal: unknown, now: number, actor: string): Promise<ProposalResult> {
     let input = proposal;
+    let dealHandle: string | undefined;
     const p = proposal as {kind?: unknown; creatorId?: unknown} | null;
     if (p && typeof p === 'object' && p.kind === 'create_deal' && typeof p.creatorId === 'string') {
       input = {...p, creatorVerifiedTotal: await this.creatorVerifiedTotal(p.creatorId)};
+      dealHandle = (await this.creator(p.creatorId))?.handle;
     }
     const rationale = typeof (proposal as {rationale?: unknown})?.rationale === 'string' ? String((proposal as {rationale: string}).rationale).slice(0, 2000) : undefined;
     return this.mutate(campaignId, ({book}) => {
@@ -352,7 +558,7 @@ export class CampaignStore {
         events.push({kind: 'price.raised', actor, summary: `Price raised from ${dollars(r.decision.fromCents)} to ${dollars(r.decision.toCents)} for every sign-up, including earlier ones.`, data: {...r.decision, rationale}});
       } else {
         const deal = Object.values(r.book.deals).find(d => !book.deals[d.creatorId]);
-        if (deal) events.push({kind: 'deal.created', actor, summary: `Private deal: at least ${dollars(deal.priceCents)} per sign-up for ${deal.creatorId}'s next ${deal.volumeCap}.`, data: {...deal}});
+        if (deal) events.push({kind: 'deal.created', actor, summary: `Private deal: at least ${dollars(deal.priceCents)} per sign-up for ${dealHandle ?? deal.creatorId}'s next ${deal.volumeCap}.`, data: {...deal}});
       }
       return {book: r.book, events, result: r, priceRationale: rationale};
     }, now, actor);

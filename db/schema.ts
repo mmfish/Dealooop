@@ -51,7 +51,7 @@ export const shortlistActions=sqliteTable('shortlist_actions',{id:text('id').pri
 // ---------------------------------------------------------------------------
 export const campaigns=sqliteTable('campaigns',{
  id:text('id').primaryKey(),ownerId:text('owner_id').notNull().references(()=>users.id),
- title:text('title').notNull(),brief:text('brief').notNull(),productUrl:text('product_url').notNull(),
+ title:text('title').notNull(),brief:text('brief').notNull(),productUrl:text('product_url').notNull(),imageUrl:text('image_url').notNull().default(''),
  goalCount:integer('goal_count').notNull(),budgetCents:integer('budget_cents').notNull(),maxCacCents:integer('max_cac_cents').notNull(),
  startPriceCents:integer('start_price_cents').notNull(),stepCents:integer('step_cents').notNull(),currentPriceCents:integer('current_price_cents').notNull(),
  deadline:integer('deadline').notNull(),status:text('status').notNull().default('open'),nextSeq:integer('next_seq').notNull().default(1),
@@ -113,3 +113,19 @@ export const creatorProfiles=sqliteTable('creator_profiles',{
  niche:text('niche').notNull(),audience:text('audience').notNull().default(''),followers:integer('followers').notNull().default(0),
  priorVerified:integer('prior_verified').notNull().default(0),demo:integer('demo').notNull().default(0),createdAt:integer('created_at').notNull(),
 },t=>[check('creator_profile_counts',sql`${t.followers}>=0 AND ${t.priorVerified}>=0`)]);
+// A creator's question the brief does not answer (DEMO-FLOW beat 4). Only the
+// founder can answer it, through their own agent, in their own words.
+export const campaignQuestions=sqliteTable('campaign_questions',{
+ id:text('id').primaryKey(),campaignId:text('campaign_id').notNull().references(()=>campaigns.id),
+ creatorId:text('creator_id').notNull().references(()=>users.id),question:text('question').notNull(),
+ status:text('status').notNull().default('pending'),answer:text('answer').notNull().default(''),
+ createdAt:integer('created_at').notNull(),answeredAt:integer('answered_at'),
+},t=>[index('campaign_question_status').on(t.campaignId,t.status),check('campaign_question_state',sql`${t.status} IN ('pending','answered')`)]);
+// Private negotiations between a top creator and a campaign's founder (DEMO-FLOW beat 6).
+// state_json is core/negotiation.ts's Negotiation; neither side's private limit is stored.
+export const campaignNegotiations=sqliteTable('campaign_negotiations',{
+ id:text('id').primaryKey(),campaignId:text('campaign_id').notNull().references(()=>campaigns.id),
+ creatorId:text('creator_id').notNull().references(()=>users.id),status:text('status').notNull().default('open'),
+ stateJson:text('state_json').notNull(),turns:integer('turns').notNull().default(0),
+ createdAt:integer('created_at').notNull(),updatedAt:integer('updated_at').notNull(),
+},t=>[index('campaign_negotiation_campaign').on(t.campaignId,t.status),check('campaign_negotiation_state',sql`${t.status} IN ('open','agreed','failed')`)]);

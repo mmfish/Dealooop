@@ -80,7 +80,7 @@ runtime/       runtime adapters (AWS/SQLite only)
 4. ~~`sim/` + comparison (S2, S3)~~ — done
 5. ~~`agents/`: connect Claude~~ — done: brief parsing (`npm run brief`), supply estimation and creator decisions (`npm run sim:claude`)
 6. ~~Negotiation channel (C series, S8–S10)~~ — done (`core/negotiation.ts`, `npm run negotiate`); persistence and MCP tools come with Act 2
-7. UI, seed data, and removal of the remaining secondhand-marketplace code — Act 1 dashboard done (`/sim`)
+7. UI, seed data, and removal of the remaining secondhand-marketplace code — Act 1 dashboard done (`/sim`); campaign pages done: the homepage `/` lists campaigns and `/campaigns/<id>` shows one (basics, then "Live results" and "Activity" tabs once a creator joins), in the original homepage style (`Shell`, `globals.css`); public and read-only, built on `db/campaign-view.ts`, which `campaign_report` shares
 
 ## Local development
 
@@ -88,6 +88,8 @@ runtime/       runtime adapters (AWS/SQLite only)
 - Dev server: `DEALOOP_ORIGIN=http://localhost:3200 npm run dev:aws -- --port 3200`
 - Tests: `npm test`; types: `npm run check`; simulator: `npm run sim`
 - Claude Desktop (local MCP over stdio): `npm run mcp:config -- --install`, see `docs/CLAUDE-DESKTOP.md`
+- Matching on a live campaign (demo beat 3): `npm run match` (newest open campaign; about 30 model calls, roughly $0.20, saved to `data/match-runs/`), or `npm run match -- --recorded <file>` with no model calls
+- Private deal negotiation (demo beat 6): Yi's window (`DEALOOP_ROLE=creator DEALOOP_USER_ID=yi`) calls `open_private_deal`, Summer's replies with `deal_move`; each side's limit lives only in its own MCP process. Fallback with no Claude windows: `npm run negotiate -- --campaign latest --rules` (or without `--rules` for the Claude negotiators, a few cents)
 - Simulator with Claude agents: `npm run sim:claude -- --seed 1` (calls the API and costs money; add `--creators 5 --days 2` for a cheap trial)
 - Agent tests never call the network: they use a fake `JsonClient` (`tests/agents.test.ts`)
 

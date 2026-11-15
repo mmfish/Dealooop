@@ -54,11 +54,11 @@ Estimates for two people; today is 2026-11-11 and the deadline is 2026-11-19.
 |---|---|---|---|
 | 1 | ~~Persistence~~ — done: `db/campaign-store.ts`, migration 0009 (feed events, creator profiles, deal volume cap, write guard) | 1 day | everything |
 | 2 | ~~Connect a Claude window~~ — done for the founder: local stdio server for Claude Desktop (`mcp/stdio.ts`, `docs/CLAUDE-DESKTOP.md`); public HTTPS and Claude.ai's OAuth callback last | 0.5–1.5 days | beats 1, 4, 6, 7 |
-| 3 | MCP tools: ~~`post_campaign`, `campaign_report`~~ (done; Claude extracts, the platform grounds every value without a model call), then creator questions and pending approvals | 1 day | beats 1, 4, 7 |
-| 4 | Platform pages: campaign list, live event feed (SSE), results page; the `/sim` dashboard reused for the replay | 1.5 days | beats 2, 3, 5, 7 |
-| 5 | Matching on the real campaign, plus the clarification protocol and escalation to the founder | 1–1.5 days | beats 3, 4 |
+| 3 | MCP tools: ~~`post_campaign`, `campaign_report`~~ (done; Claude extracts, the platform grounds every value without a model call), ~~then creator questions and pending approvals~~ (done: `list_creator_questions`, `answer_creator_question`) | 1 day | beats 1, 4, 7 |
+| 4 | ~~Platform pages~~ — done: the homepage lists campaigns; `/campaigns/<id>` has the basics (founder, cover image, brief, dates) and, once a creator joins, "Live results" (live CAC, users by creator) and "Activity" tabs; live over SSE | 1.5 days | beats 2, 3, 5, 7 |
+| 5 | ~~Matching and clarification~~ — done: `npm run match` (30 simulated creators in `sim/demo-creators.ts`, one model call each, `--recorded` to replay), questions stored per campaign and answered only with the founder's own approval | 1–1.5 days | beats 3, 4 |
 | 6 | Split simulation run (days 1–5, deal, days 6–14) against stored records | 0.5–1 day | beat 5 |
-| 7 | Negotiation over MCP with owner approval in both windows | 1 day | beat 6 |
+| 7 | ~~Negotiation over MCP~~ — done: negotiations stored per campaign (migration 0012), `open_private_deal` / `deal_move` in both windows, each owner's limit only from their own words and never stored, a move past it goes back to the owner; `npm run negotiate -- --campaign latest --rules` as the fallback | 1 day | beat 6 |
 | 8 | Rehearsal, fallbacks, screen recordings | 0.5 day | — |
 
 About 7 days of work for 8 days on the calendar: little slack. If something must be cut, cut
@@ -71,7 +71,7 @@ report covers it), then live matching (replay recorded agent decisions).
 |---|---|---|
 | 1, 7 | The Claude window cannot reach the server | The same tool calls from a terminal client; a recorded clip of the window |
 | 3 | Model calls slow or failing | Recorded join and decline decisions replayed into the feed |
-| 4, 6 | An agent goes off script | Rehearsed mandates make the escalation reliable; the rule-based negotiator (`npm run negotiate --rules`) produces the same protocol with no model calls |
+| 4, 6 | An agent goes off script | Rehearsed mandates make the escalation reliable; the rule-based negotiator (`npm run negotiate -- --campaign latest --rules`) runs the same protocol on the live campaign with no model calls |
 | 5 | — | Already a replay; the screen recording as a last resort |
 
 ## Still open

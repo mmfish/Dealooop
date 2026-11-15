@@ -42,7 +42,7 @@ test('a founder posts a campaign from their own words, and nothing is invented',
   const founder = await connect({DEALOOP_ROLE: 'founder', DEALOOP_USER_ID: 'summer', DEALOOP_USER_NAME: 'Summer', DEALOOP_DB_PATH: dbPath});
   try {
     const tools = (await founder.listTools()).tools.map(t => t.name).sort();
-    assert.deepEqual(tools, ['campaign_report', 'get_my_identity', 'list_my_campaigns', 'list_open_campaigns', 'post_campaign']);
+    assert.deepEqual(tools, ['answer_creator_question', 'campaign_report', 'deal_move', 'get_my_identity', 'list_creator_questions', 'list_deal_negotiations', 'list_my_campaigns', 'list_open_campaigns', 'post_campaign', 'read_deal_negotiation']);
     const me = (await call(founder, 'get_my_identity')).structuredContent!;
     assert.equal(me.role, 'founder');
     assert.equal(me.user_id, 'summer');
@@ -96,7 +96,7 @@ test('a founder posts a campaign from their own words, and nothing is invented',
     // A creator's window can browse campaigns but has no founder tools, and cannot read the report.
     const creator = await connect({DEALOOP_ROLE: 'creator', DEALOOP_USER_ID: 'yi', DEALOOP_DB_PATH: dbPath});
     try {
-      assert.deepEqual((await creator.listTools()).tools.map(t => t.name).sort(), ['get_my_identity', 'list_open_campaigns']);
+      assert.deepEqual((await creator.listTools()).tools.map(t => t.name).sort(), ['deal_move', 'get_my_identity', 'join_campaign', 'list_deal_negotiations', 'list_open_campaigns', 'open_private_deal', 'read_deal_negotiation']);
       const open = (await call(creator, 'list_open_campaigns')).structuredContent!.campaigns as {campaign_id: string}[];
       assert.equal(open[0].campaign_id, id);
     } finally { await creator.close(); }
@@ -109,4 +109,44 @@ test('a founder posts a campaign from their own words, and nothing is invented',
     await founder.close();
     rmSync(dir, {recursive: true, force: true});
   }
+});
+
+test('a creator question reaches the founder, and only their own approval answers it', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'dealoop-mcp-'));
+  const dbPath = join(dir, 'test.sqlite');
+  const sqlite = new SQLiteDatabase(dbPath);
+  sqlite.migrate(join(root, 'drizzle'));
+  const store = new CampaignStore(sqlite.asD1());
+  const now = Date.now();
+  await store.createCampaign({id: 'c', ownerId: 'summer', ownerName: 'Summer', title: 'Dealoop', brief: S1, productUrl: '', goalCount: 100, budgetCents: 100_000, maxCacCents: 1_000, deadline: now + 14 * 86_400_000, now});
+  await store.upsertCreator({userId: 'maya', handle: '@growthwithmaya', platform: 'YouTube', niche: 'growth', audience: '', followers: 1, priorVerified: 0, demo: true, now});
+  await store.askQuestion('c', 'maya', 'Can I say Dealoop is free?', now);
+  const founder = await connect({DEALOOP_ROLE: 'founder', DEALOOP_USER_ID: 'summer', DEALOOP_DB_PATH: dbPath});
+  try {
+    const listed = (await call(founder, 'list_creator_questions')).structuredContent!.questions as {question_id: string; question: string; creator: string}[];
+    assert.deepEqual(listed.map(q => [q.creator, q.question]), [['@growthwithmaya', 'Can I say Dealoop is free?']]);
+    const id = listed[0].question_id;
+    const wording = 'Free to post a campaign; you pay only for verified sign-ups.';
+    const answer = (extra: Record<string, unknown>) => call(founder, 'answer_creator_question', {question_id: id, wording, ...extra});
+
+    const unseen = (await answer({preview: false, owner_messages: ['yes'], approval_quote: 'yes'})).structuredContent!;
+    assert.equal(unseen.status, 'invalid', 'a wording the owner never saw is refused');
+    assert.equal((await answer({preview: true})).structuredContent!.status, 'preview');
+    const guessed = (await answer({preview: false, owner_messages: ['hmm, what does that mean?'], approval_quote: 'yes'})).structuredContent!;
+    assert.equal(guessed.status, 'needs_approval', 'an approval the owner did not write is refused');
+    const vague = (await answer({preview: false, owner_messages: ['hmm, what does that mean?'], approval_quote: 'what does that mean'})).structuredContent!;
+    assert.equal(vague.status, 'needs_approval', 'their words must actually approve');
+    assert.equal((await store.questions('c', 'pending')).length, 1, 'nothing was sent yet');
+
+    const done = (await answer({preview: false, owner_messages: ['Yes, that works.'], approval_quote: 'Yes, that works'})).structuredContent!;
+    assert.equal(done.status, 'answered');
+    assert.ok(await store.link('c', 'maya'), 'the creator joined');
+    assert.equal((await answer({preview: false, owner_messages: ['Yes'], approval_quote: 'Yes'})).structuredContent!.status, 'already_answered');
+    const report = (await call(founder, 'campaign_report', {campaign_id: 'c'})).structuredContent!;
+    assert.equal(report.questions_waiting_for_you, 0);
+  } finally { await founder.close(); }
+  const other = await connect({DEALOOP_ROLE: 'founder', DEALOOP_USER_ID: 'someone-else', DEALOOP_DB_PATH: dbPath});
+  try {
+    assert.deepEqual((await call(other, 'list_creator_questions')).structuredContent!.questions, []);
+  } finally { await other.close(); sqlite.close(); rmSync(dir, {recursive: true, force: true}); }
 });

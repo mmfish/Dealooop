@@ -1,17 +1,38 @@
-import {Shell,Card,Empty,PageHeading} from './ui';
-import {repository} from './data';
-import {MapPin,SlidersHorizontal,ArrowRight} from 'lucide-react';
-import {DemoButton} from './widgets';
-import {getUser} from './auth';
-export const dynamic='force-dynamic';
-export default async function Home({searchParams}:{searchParams:Promise<Record<string,string|undefined>>}){
- const p=await searchParams;const repo=repository();const posts=await repo.browse(p);const user=await getUser();
- function link(type:string){const qs=new URLSearchParams(Object.entries({...p,type}).filter(([,v])=>!!v) as [string,string][]);return '/?'+qs.toString();}
- const hasFilters=!!(p.q||p.category||p.location||p.max_price||p.type||p.delivery);
- return <Shell category={p.category} q={p.q}><PageHeading eyebrow="GOOD FINDS. NEW BEGINNINGS." title="Find your next good thing." description="Pre-loved things. New possibilities. A marketplace that goes both ways." action={<a className="subtle-link" href="/new?type=wanted">Looking for something? <ArrowRight size={17}/></a>}/><div className="browse-bar"><div className="tabs"><a className={!p.type?'active':''} href={link('')}>Discover all</a><a className={p.type==='for_sale'?'active':''} href={link('for_sale')}>For sale</a><a className={p.type==='wanted'?'active':''} href={link('wanted')}>Wanted<span className="new-label">NEW</span></a></div><span className="location-label"><MapPin size={16}/>{p.location||'All locations'}</span></div>
- <form className="filter-bar" action="/"><input type="hidden" name="type" value={p.type||''}/><input type="hidden" name="category" value={p.category||''}/><input type="hidden" name="q" value={p.q||''}/><label className="filter-field"><MapPin size={15}/><input name="location" placeholder="City or area" defaultValue={p.location} aria-label="City or area"/></label><label className="filter-field"><span>$</span><input name="max_price" type="number" min="0" placeholder="Max price" defaultValue={p.max_price} aria-label="Maximum price"/></label><select name="delivery" defaultValue={p.delivery||''} aria-label="Delivery"><option value="">Any delivery</option><option value="local_pickup">Local pickup</option><option value="shipping">Shipping</option><option value="either">Pickup or shipping</option></select><select name="sort" defaultValue={p.sort||'newest'} aria-label="Sort listings"><option value="newest">Newest first</option><option value="price_low">Price: low to high</option><option value="price_high">Price: high to low</option></select><button className="filter-apply"><SlidersHorizontal size={15}/>Apply</button>{hasFilters&&<a className="clear-filters" href="/">Clear</a>}</form>
- <div className="section-heading"><h2>{p.q?`Results for “${p.q}”`:p.category|| (p.type==='wanted'?'A little wish list':'Fresh finds')}</h2><span>{posts.length} {posts.length===1?'post':'posts'}</span></div>
- {posts.length?<div className="post-grid">{posts.map(post=><Card post={post} key={post.id}/>)}</div>:<><Empty title={hasFilters?'Nothing here just yet.':'Good things start with a first post.'} href={hasFilters?'/new?type=wanted':'/new'} label={hasFilters?'Post what you’re looking for':'Create a post'}>{hasFilters?'Try a wider search—or let the right thing find you with a Wanted post.':'List something you’re ready to pass on, or share what you’re hoping to find.'}</Empty>{!hasFilters&&user&&<div className="demo-loader"><p>Want to explore the layout first?</p><DemoButton/></div>}</>}
- <div className="bottom-note"><span className="status-dot"/>Made for people. Open to their agents.<a href="/agents">See how it works <ArrowUpRightIcon/></a></div></Shell>;
+// Home: every campaign on the platform, newest first (DEMO-FLOW beat 2). A
+// founder's Claude posts one and it appears here; creators and creator agents
+// open it from here. Same layout as the original homepage.
+import Link from 'next/link';
+
+import {Shell, Empty, PageHeading} from './ui';
+import {ArrowRight} from 'lucide-react';
+import {env} from '@/runtime/bindings';
+import {CampaignStore} from '@/db/campaign-store';
+import {campaignList} from '@/db/campaign-view';
+import {CampaignCard} from './campaign-card';
+import {LiveRefresh} from './campaigns/live';
+
+export const dynamic = 'force-dynamic';
+
+export default async function Home({searchParams}: {searchParams: Promise<Record<string, string | undefined>>}) {
+  const p = await searchParams;
+  const status = p.status === 'open' || p.status === 'closed' ? p.status : undefined;
+  const store = new CampaignStore(env.DB!);
+  const [campaigns, latest] = await Promise.all([campaignList(store, {status, q: p.q}), store.latestSequence()]);
+  const link = (s: string) => '/?' + new URLSearchParams(Object.entries({q: p.q, status: s}).filter(([, v]) => !!v) as [string, string][]).toString();
+  return <Shell q={p.q}>
+    <PageHeading eyebrow="PAY ONLY FOR VERIFIED SIGN-UPS" title="Get users. Pay only for the real ones." description="Founders post a goal and a budget. Creators and their agents promote it, and get paid for every verified sign-up." action={<Link className="subtle-link" href="/creators">For creators: how it works <ArrowRight size={17} /></Link>} />
+    <div className="browse-bar">
+      <div className="tabs">
+        <Link className={!status ? 'active' : ''} href={link('')}>All campaigns</Link>
+        <Link className={status === 'open' ? 'active' : ''} href={link('open')}>Open</Link>
+        <Link className={status === 'closed' ? 'active' : ''} href={link('closed')}>Closed</Link>
+      </div>
+      <span className="location-label"><LiveRefresh after={latest} /></span>
+    </div>
+    <div className="section-heading" style={{marginTop: 24}}><h2>{p.q ? `Results for “${p.q}”` : status === 'closed' ? 'Closed campaigns' : status === 'open' ? 'Open campaigns' : 'Open and recent campaigns'}</h2><span>{campaigns.length} {campaigns.length === 1 ? 'campaign' : 'campaigns'}</span></div>
+    {campaigns.length
+      ? <div className="post-grid">{campaigns.map(c => <CampaignCard c={c} key={c.id} />)}</div>
+      : <Empty title={p.q || status ? 'Nothing here just yet.' : 'No campaigns yet.'} href="/campaigns/new" label="Post a campaign">When a founder’s Claude posts a campaign, it appears here for creators and their agents.</Empty>}
+    <div className="bottom-note"><span className="status-dot" />Made for people. Open to their agents.</div>
+  </Shell>;
 }
-function ArrowUpRightIcon(){return <span aria-hidden="true">↗</span>;}

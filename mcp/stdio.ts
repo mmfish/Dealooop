@@ -12,6 +12,7 @@ import {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js';
 import {StdioServerTransport} from '@modelcontextprotocol/sdk/server/stdio.js';
 import {SQLiteDatabase} from '../runtime/sqlite.ts';
 import {CampaignStore} from '../db/campaign-store.ts';
+import {YI} from '../sim/demo-creators.ts';
 import {registerCampaignTools, SERVER_INSTRUCTIONS, type Role} from './campaign-tools.ts';
 
 const root = join(import.meta.dirname, '..');
@@ -32,6 +33,8 @@ const db = new SQLiteDatabase(process.env.DEALOOP_DB_PATH ?? join(root, 'data/de
 db.migrate(process.env.DEALOOP_MIGRATIONS_PATH ?? join(root, 'drizzle'));
 const store = new CampaignStore(db.asD1());
 await store.ensureUser(identity.userId, identity.name, Date.now());
+// Yi's public profile (track record included), so his window works before matching has run.
+if (identity.userId === YI.userId) await store.upsertCreator({...YI, demo: false, now: Date.now()});
 
 const server = new McpServer({name: 'dealoop', version: '0.1.0'}, {instructions: SERVER_INSTRUCTIONS});
 registerCampaignTools(server, {store, identity, origin, now: () => Date.now()});
