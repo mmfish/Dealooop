@@ -12,7 +12,7 @@ import {z} from 'zod';
 import {grounded, judgeExtraction, type Extraction} from '../agents/brief-parser.ts';
 import {CoreError} from '../core/campaign.ts';
 import {CampaignStore, StoreError, type StoredCampaign} from '../db/campaign-store.ts';
-import {viewOf} from '../db/campaign-view.ts';
+import {campaignDay, viewOf} from '../db/campaign-view.ts';
 import {approves, registerDealTools} from './deal-tools.ts';
 
 export type Role = 'founder' | 'creator';
@@ -28,8 +28,8 @@ export interface ToolContext {
   identity: Identity;
   /** Where the platform's pages are served, for links. */
   origin: string;
-  /** The platform's clock (the demo can run it ahead). */
-  now: () => number;
+  /** The platform's clock (the demo can run it ahead; see CampaignStore.now). */
+  now: () => Promise<number>;
 }
 
 const dollars = (c: number) => '$' + (c / 100).toFixed(2);
@@ -70,6 +70,7 @@ export async function campaignReport(store: CampaignStore, s: StoredCampaign, or
   const r = v.results;
   return {
     ...campaignSummary(s, origin),
+    ...(v.status === 'open' ? {campaign_day: campaignDay(v.now, v.createdAt, v.deadline)} : {}),
     sign_ups: v.signUps,
     budget_committed: dollars(v.committedCents),
     ...(r
@@ -95,13 +96,13 @@ const quote = z.string().max(400);
 
 export function registerCampaignTools(server: McpServer, ctx: ToolContext) {
   const {store, identity, origin} = ctx;
-  const today = () => day(ctx.now());
+  const today = async () => day(await ctx.now());
 
   server.registerTool('get_my_identity', {
     description: 'Who you are acting for on Dealoop, your role (founder or creator), the platform\'s current date, and where its pages are.',
     inputSchema: {},
     annotations: {readOnlyHint: true},
-  }, async () => ok({role: identity.role, user_id: identity.userId, name: identity.name, platform_today: today(), platform: origin}));
+  }, async () => ok({role: identity.role, user_id: identity.userId, name: identity.name, platform_today: await today(), platform: origin}));
 
   server.registerTool('list_open_campaigns', {
     description: 'Campaigns currently accepting creators, with the current public price per verified sign-up. Prices only rise, and a rise applies to every earlier sign-up too.',
@@ -119,7 +120,7 @@ export function registerCampaignTools(server: McpServer, ctx: ToolContext) {
   server.registerTool('post_campaign', {
     description: `Turn your owner's request into a Dealoop campaign: they pay only for verified sign-ups, at a public price that starts at 30% of their maximum and rises only when that is expected to bring more sign-ups within budget.
 
-Pass the owner's own messages verbatim in founder_messages (the request and any answers). For every value, also pass the exact words from those messages that state it (copied character for character). Do not fill in, assume or compute a value the owner did not state: leave it 0 or empty with an empty quote, and the platform will return the question to ask. A deadline given as a duration ("two weeks") should be converted to a date from platform_today (see get_my_identity; today is ${today()}).
+Pass the owner's own messages verbatim in founder_messages (the request and any answers). For every value, also pass the exact words from those messages that state it (copied character for character). Do not fill in, assume or compute a value the owner did not state: leave it 0 or empty with an empty quote, and the platform will return the question to ask. A deadline given as a duration ("two weeks") should be converted to a date from platform_today (see get_my_identity).
 
 Always call with preview: true first and show your owner the campaign. Call with preview: false only after they agree; that posts it and commits their budget. Posting the same messages again returns the same campaign.`,
     inputSchema: {
@@ -144,7 +145,7 @@ Always call with preview: true first and show your owner the campaign. Call with
       max_cac_dollars: a.max_cac_dollars, max_cac_quote: a.max_cac_quote, deadline_date: a.deadline_date, deadline_quote: a.deadline_quote,
       quantity_intent: a.quantity_intent,
     };
-    const now = ctx.now();
+    const now = await ctx.now();
     const r = judgeExtraction(text, extraction, now);
     if (r.status === 'invalid') return ok({status: 'invalid', problems: r.problems, next: 'Explain the problem to your owner. Nothing was posted.'});
     if (r.status === 'needs_info') return ok({status: 'needs_info', ask_your_owner: r.question, notes: r.notes, next: 'Ask your owner this, then call again with their answer added to founder_messages. Nothing was posted.'});
@@ -229,7 +230,7 @@ Call with preview: true first, passing the wording, and show your owner that exa
     // The quote must be the owner's own words, and either say yes or contain the wording itself.
     const approved = quoteOk && (approves(a.approval_quote) || grounded(a.approval_quote, wording, false));
     if (!approved) return ok({status: 'needs_approval', ask_your_owner: `May ${(await store.creator(q.creatorId))?.handle ?? 'the creator'} say: “${wording}”?`, next: 'Ask your owner, then call again with their reply in owner_messages and their words of approval in approval_quote. Nothing was sent.'});
-    const r = await store.answerQuestion(q.id, wording, ctx.now());
+    const r = await store.answerQuestion(q.id, wording, await ctx.now());
     previewed.delete(q.id);
     return ok({status: 'answered', wording, creator_joined: true, link_issued: !!r.link.token, page: `${origin}/campaigns/${q.campaignId}`});
   }));

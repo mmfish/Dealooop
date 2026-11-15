@@ -129,3 +129,9 @@ export const campaignNegotiations=sqliteTable('campaign_negotiations',{
  stateJson:text('state_json').notNull(),turns:integer('turns').notNull().default(0),
  createdAt:integer('created_at').notNull(),updatedAt:integer('updated_at').notNull(),
 },t=>[index('campaign_negotiation_campaign').on(t.campaignId,t.status),check('campaign_negotiation_state',sql`${t.status} IN ('open','agreed','failed')`)]);
+// The platform's clock for the demo: how far ahead of real time the platform
+// runs. One row; absent means real time. The day-by-day replay moves it forward,
+// so the page and both owners' agents agree on which campaign day it is.
+export const platformClock=sqliteTable('platform_clock',{
+ id:integer('id').primaryKey(),offsetMs:integer('offset_ms').notNull(),updatedAt:integer('updated_at').notNull(),
+},t=>[check('platform_clock_single',sql`${t.id}=1`)]);

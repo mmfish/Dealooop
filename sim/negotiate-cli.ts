@@ -50,13 +50,14 @@ async function stored() {
   const creatorId = flag('creator', YI.userId);
   if (creatorId === YI.userId) await store.upsertCreator({...YI, demo: false, now: Date.now()});
   const s = await store.require(id);
+  const offset = (await store.now()) - Date.now();
   const client = new AnthropicJsonClient();
   const agent = useRules ? new RuleNegotiator() : new ClaudeNegotiator(client);
   const handle = (await store.creator(creatorId))?.handle ?? creatorId;
   console.log(`Private negotiation on "${s.meta.title}" (${id}) · ${handle} and the founder · agents: ${useRules ? 'rules' : `${creatorModel()} / ${founderModel()}`}`);
   console.log(`Public price ${dollars(s.book.campaign.currentPriceCents)} · private limits (each agent sees only its own): creator ${dollars(mandates.creator.minPriceCents)}, founder ${dollars(mandates.founder.maxPriceCents)} for up to ${mandates.founder.maxVolume}\n`);
   const out = await runStoredNegotiation({
-    store, campaignId: id, creatorId, mandates, creatorAgent: agent, founderAgent: agent, now: Date.now,
+    store, campaignId: id, creatorId, mandates, creatorAgent: agent, founderAgent: agent, now: () => Date.now() + offset,
     onEvent: e => {
       const terms = e.move.action === 'propose' ? ` ${dollars(e.move.terms.priceCents)} × ${e.move.terms.volumeCap}` : '';
       console.log(`${(e.side === 'creator' ? 'Creator agent' : 'Founder agent').padEnd(14)} ${e.move.action.toUpperCase()}${terms}${e.refused ? `   refused: ${e.refused}` : ''}`);

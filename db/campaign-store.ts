@@ -296,6 +296,26 @@ export class CampaignStore {
   }
 
   // -------------------------------------------------------------------------
+  // The platform clock. Real time plus a stored offset, so a demo can run the
+  // platform ahead (sim/campaign-days.ts) and every process reading this
+  // database, the pages and both owners' MCP servers, sees the same time.
+  // -------------------------------------------------------------------------
+
+  async now(): Promise<number> {
+    const r = await this.db.prepare('SELECT offset_ms FROM platform_clock WHERE id=1').first<{offset_ms: number}>();
+    return Date.now() + num(r?.offset_ms ?? 0);
+  }
+
+  /** Moves the platform's time to `at`. The clock never goes back unless `allowBack` (a demo reset). */
+  async setClock(at: number, allowBack = false): Promise<void> {
+    const current = await this.now();
+    if (at < current && !allowBack) return;
+    const real = Date.now();
+    await this.db.prepare('INSERT INTO platform_clock(id,offset_ms,updated_at) VALUES(1,?,?) ON CONFLICT(id) DO UPDATE SET offset_ms=excluded.offset_ms, updated_at=excluded.updated_at')
+      .bind(Math.round(at - real), real).run();
+  }
+
+  // -------------------------------------------------------------------------
   // Writes
   // -------------------------------------------------------------------------
 

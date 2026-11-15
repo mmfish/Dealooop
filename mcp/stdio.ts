@@ -37,6 +37,6 @@ await store.ensureUser(identity.userId, identity.name, Date.now());
 if (identity.userId === YI.userId) await store.upsertCreator({...YI, demo: false, now: Date.now()});
 
 const server = new McpServer({name: 'dealoop', version: '0.1.0'}, {instructions: SERVER_INSTRUCTIONS});
-registerCampaignTools(server, {store, identity, origin, now: () => Date.now()});
+registerCampaignTools(server, {store, identity, origin, now: () => store.now()});
 await server.connect(new StdioServerTransport());
 console.error(`Dealoop MCP ready: ${identity.role} ${identity.userId}, database ${process.env.DEALOOP_DB_PATH ?? 'data/dealoop.sqlite'}`);

@@ -20,11 +20,18 @@ export interface DemoCreator {
   floorCents: number;
   /** Private: what the owner told their agent, beyond the floor. */
   note?: string;
+  /**
+   * Whether this creator's audience suits a product for founders and creators. Used by
+   * the day-by-day replay (sim/campaign-days.ts): when the price rises past the floor of
+   * a creator who declined, they reconsider only if the fit was there.
+   */
+  fit: boolean;
 }
 
 type Row = [handle: string, platform: string, niche: string, audience: string, followers: number, floorCents: number, note?: string];
 
-// Fit is deliberately mixed: about half the niches suit a product for founders and creators.
+// Fit is deliberately mixed: the first FIT_ROWS niches suit a product for founders and creators, the rest do not.
+const FIT_ROWS = 19;
 const ROWS: Row[] = [
   ['@growthwithmaya', 'YouTube', 'growth marketing for startups', 'early-stage founders', 48_000, 300,
     'My audience is very price-sensitive. Before promoting anything I must be able to tell them plainly whether it is free to use. If a campaign does not say, ask the founder first instead of joining or declining.'],
@@ -61,8 +68,8 @@ const ROWS: Row[] = [
 
 const slug = (handle: string) => 'demo-' + handle.replace(/[^a-z0-9]+/gi, '').toLowerCase();
 
-export const DEMO_CREATORS: DemoCreator[] = ROWS.map(([handle, platform, niche, audience, followers, floorCents, note]) => ({
-  userId: slug(handle), handle, platform, niche, audience, followers, priorVerified: 0, floorCents, note,
+export const DEMO_CREATORS: DemoCreator[] = ROWS.map(([handle, platform, niche, audience, followers, floorCents, note], i) => ({
+  userId: slug(handle), handle, platform, niche, audience, followers, priorVerified: 0, floorCents, note, fit: i < FIT_ROWS,
 }));
 
 /** Yi, the real top creator. His agent is his own Claude; only his public profile is seeded here. */

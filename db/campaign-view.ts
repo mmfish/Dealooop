@@ -70,6 +70,8 @@ export interface CampaignView {
   currentPriceCents: number;
   createdAt: number;
   deadline: number;
+  /** The platform's time when this view was read (CampaignStore.now), which the demo may run ahead. */
+  now: number;
   signUps: {verified: number; pending: number; rejected: number; unfunded: number};
   committedCents: number;
   /** Average cost per sign-up so far: committed over pending and verified sign-ups; after settlement, paid over paid sign-ups. Null with none. */
@@ -166,12 +168,13 @@ export async function viewOf(store: CampaignStore, s: StoredCampaign, options: V
 
   const recent = await store.recentEvents(c.id, options.feedLimit ?? 200);
   const owner = await store.db.prepare('SELECT name FROM users WHERE id=?').bind(meta.ownerId).first<{name: string}>();
+  const now = await store.now();
 
   return {
     id: c.id, title: meta.title, status: c.status, demo: meta.demo, ownerId: meta.ownerId, ownerName: owner?.name ?? meta.ownerId,
     brief: meta.brief, productUrl: meta.productUrl, imageUrl: meta.imageUrl,
     goalCount: c.goalCount, budgetCents: c.budgetCents, maxCacCents: c.maxCacCents, startPriceCents: c.startPriceCents,
-    currentPriceCents: c.currentPriceCents, createdAt: c.createdAt, deadline: c.deadline,
+    currentPriceCents: c.currentPriceCents, createdAt: c.createdAt, deadline: c.deadline, now,
     signUps: {verified: n.verified, pending: n.pending, rejected: n.rejected, unfunded: n.unfunded},
     committedCents: committedCents(book),
     liveCacCents: results ? results.averageCents : (n.verified + n.pending ? Math.round(committedCents(book) / (n.verified + n.pending)) : null),
@@ -227,6 +230,13 @@ export async function campaignList(store: CampaignStore, options: {status?: 'ope
     });
   }
   return out;
+}
+
+/** "Day 6 of 14": which day of the campaign `at` falls on, counted like campaignClock. */
+export function campaignDay(at: number, startedAt: number, deadline: number): string {
+  const total = Math.max(1, Math.ceil((deadline - startedAt) / DAY_MS));
+  const dayNo = Math.min(total, Math.floor(Math.max(0, at - startedAt) / DAY_MS) + 1);
+  return `Day ${dayNo} of ${total}`;
 }
 
 /** "Day 3 · 14:05": time since the campaign started, which reads the same on a live clock and an accelerated one. */

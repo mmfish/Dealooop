@@ -127,8 +127,8 @@ export function registerDealTools(server: McpServer, ctx: ToolContext) {
     if (set.mandate) limits.set(n.id, set.mandate);
     const own = limits.get(n.id);
     if (!own) return ok({status: 'needs_your_owner', ask_your_owner: askLimit, next: 'Nothing was sent.'});
-    const r = await store.negotiationMove(n.id, side, m, own, ctx.now());
-    const view = await negotiationView(store, (await store.negotiation(n.id))!, side, origin, ctx.now());
+    const r = await store.negotiationMove(n.id, side, m, own, await ctx.now());
+    const view = await negotiationView(store, (await store.negotiation(n.id))!, side, origin, await ctx.now());
     if (!r.ok) {
       // Outside the owner's own limit: only the owner can widen it.
       if (/your owner's (minimum|maximum)|more sign-ups than your owner allows/.test(r.reason) && asked) {
@@ -196,7 +196,7 @@ export function registerDealTools(server: McpServer, ctx: ToolContext) {
   }, async ({negotiation_id}) => guard(async () => {
     const s = await owned(negotiation_id);
     if (!s) return fail('NOT_FOUND', 'No such negotiation for your owner.');
-    return ok(await negotiationView(store, s, side, origin, ctx.now()));
+    return ok(await negotiationView(store, s, side, origin, await ctx.now()));
   }));
 
   server.registerTool('deal_move', {
@@ -230,7 +230,7 @@ At most ${MAX_ROUNDS} rounds; ${side === 'founder' ? 'in the last round you can 
     inputSchema: {campaign_id: z.string().min(1).max(100)},
     annotations: {readOnlyHint: false, destructiveHint: false, idempotentHint: true},
   }, async ({campaign_id}) => guard(async () => {
-    const link = await store.join(campaign_id, identity.userId, ctx.now());
+    const link = await store.join(campaign_id, identity.userId, await ctx.now());
     return ok({status: 'joined', campaign_id, link_token: link.token, page: `${origin}/campaigns/${campaign_id}`, note: 'Sign-ups in this demo are simulated; the token identifies your owner\'s tracked link.'});
   }));
 
@@ -251,9 +251,9 @@ Pass your owner's lowest acceptable deal price as limit_price_dollars with their
     const set = limitFrom(a as LimitArgs, null, null);
     if (set.problem) return ok({status: 'invalid', problem: set.problem, next: 'Nothing was opened.'});
     if (!set.mandate) return ok({status: 'needs_your_owner', ask_your_owner: askLimit, next: 'Nothing was opened.'});
-    const s = await store.openNegotiation(a.campaign_id, identity.userId, ctx.now());
+    const s = await store.openNegotiation(a.campaign_id, identity.userId, await ctx.now());
     limits.set(s.negotiation.id, set.mandate);
-    if (s.negotiation.history.length) return ok({status: 'already_open', negotiation: await negotiationView(store, s, side, origin, ctx.now()), next: 'Use deal_move to continue.'});
+    if (s.negotiation.history.length) return ok({status: 'already_open', negotiation: await negotiationView(store, s, side, origin, await ctx.now()), next: 'Use deal_move to continue.'});
     return move(s, {action: 'propose', terms: {priceCents: cents(a.price_per_sign_up_dollars), volumeCap: a.sign_ups}, message: a.message}, {});
   }));
 }

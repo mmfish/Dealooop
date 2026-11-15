@@ -31,11 +31,13 @@ const stored = await store.require(id);
 const recordingFile = flag('recorded');
 const limit = Number(flag('limit') ?? DEMO_CREATORS.length);
 const client = recordingFile ? undefined : new AnthropicJsonClient();
+// The platform clock, which the demo may have run ahead (CampaignStore.now).
+const offset = (await store.now()) - Date.now();
 
 console.log(`Matching "${stored.meta.title}" (${id}) · ${recordingFile ? `replaying ${recordingFile}` : `live, ${creatorModel()}`} · SIMULATED CREATORS\n`);
 const decisions = await runMatching(store, id, {
   client, recording: recordingFile ? loadRecording(recordingFile) : undefined,
-  creators: DEMO_CREATORS.slice(0, limit), paceMs: Number(flag('pace') ?? (recordingFile ? 400 : 0)),
+  creators: DEMO_CREATORS.slice(0, limit), now: () => Date.now() + offset, paceMs: Number(flag('pace') ?? (recordingFile ? 400 : 0)),
   onDecision: d => console.log(`${d.decision.action.padEnd(8)} ${d.handle.padEnd(20)} ${d.decision.action === 'ask' ? d.decision.question : d.decision.reason}${d.fellBack ? '  (model unavailable: floor rule)' : ''}`),
 });
 

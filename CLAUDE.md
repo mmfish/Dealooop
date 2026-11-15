@@ -90,6 +90,8 @@ runtime/       runtime adapters (AWS/SQLite only)
 - Claude Desktop (local MCP over stdio): `npm run mcp:config -- --install`, see `docs/CLAUDE-DESKTOP.md`
 - Matching on a live campaign (demo beat 3): `npm run match` (newest open campaign; about 30 model calls, roughly $0.20, saved to `data/match-runs/`), or `npm run match -- --recorded <file>` with no model calls
 - Private deal negotiation (demo beat 6): Yi's window (`DEALOOP_ROLE=creator DEALOOP_USER_ID=yi`) calls `open_private_deal`, Summer's replies with `deal_move`; each side's limit lives only in its own MCP process. Fallback with no Claude windows: `npm run negotiate -- --campaign latest --rules` (or without `--rules` for the Claude negotiators, a few cents)
+- The campaign's days (demo beats 5a/5b): `npm run days -- --to 5` runs the newest open campaign to the end of day 5 on the platform clock (simulated sign-ups, verifications, the founder agent's daily price review; no model calls), `npm run days -- --to end` runs to the deadline and settles. The platform clock (`CampaignStore.now`, table `platform_clock`) is shared by the pages and both MCP servers, so everyone sees the same campaign day
+- Before each recording take: `npm run demo:reset` (backs up the database to `data/backups/`, deletes every campaign, puts the clock on real time, reseeds the creators)
 - Simulator with Claude agents: `npm run sim:claude -- --seed 1` (calls the API and costs money; add `--creators 5 --days 2` for a cheap trial)
 - Agent tests never call the network: they use a fake `JsonClient` (`tests/agents.test.ts`)
 

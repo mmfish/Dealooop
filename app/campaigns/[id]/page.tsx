@@ -9,7 +9,7 @@ import {notFound} from 'next/navigation';
 import {Ban, Calendar, Check, Handshake, Megaphone, MessageCircleQuestion, Receipt, ShieldCheck, Target, TrendingUp, UserCheck, UserPlus, UserX, Wallet, type LucideIcon} from 'lucide-react';
 import {env} from '@/runtime/bindings';
 import {CampaignStore} from '@/db/campaign-store';
-import {campaignClock, campaignView, DAY_MS, type CampaignView, type FeedTone} from '@/db/campaign-view';
+import {campaignClock, campaignDay, campaignView, DAY_MS, type CampaignView, type FeedTone} from '@/db/campaign-view';
 import {Shell, Back} from '../../ui';
 import {CampaignCover, shortDate, usd, usd2} from '../../campaign-card';
 import {LiveRefresh} from '../live';
@@ -46,7 +46,7 @@ export default async function CampaignPage({params, searchParams}: Props) {
         <div className="detail-meta">
           <span><Target size={17} />Goal {v.goalCount} sign-ups</span>
           <span><Wallet size={17} />Budget {usd(v.budgetCents)}, up to {usd2(v.maxCacCents)} each</span>
-          <span><Calendar size={17} />{shortDate(v.createdAt)} – {shortDate(v.deadline)}{open ? ` · ${timeLeft(v)}` : ''}</span>
+          <span><Calendar size={17} />{shortDate(v.createdAt)} – {shortDate(v.deadline)}{open ? ` · ${campaignDay(v.now, v.createdAt, v.deadline)}, ${timeLeft(v)}` : ''}</span>
         </div>
         <hr />
         <h2>What the founder is asking for</h2>
@@ -76,10 +76,10 @@ export default async function CampaignPage({params, searchParams}: Props) {
 }
 
 function timeLeft(v: CampaignView) {
-  // Whole days, as the founder was told when posting ("14 days"); the deadline is the end of its day.
-  const left = v.deadline - Date.now();
+  // Whole days, rounded as the agents are told (deal-tools days_left), so the page and both windows agree.
+  const left = v.deadline - v.now;
   if (left <= 0) return 'deadline passed';
-  const days = Math.floor(left / DAY_MS);
+  const days = Math.round(left / DAY_MS);
   return days >= 2 ? `${days} days left` : days === 1 ? '1 day left' : 'last day';
 }
 
