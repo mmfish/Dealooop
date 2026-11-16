@@ -1,7 +1,13 @@
 // The AWS build fixes this value in next.config.ts; Sites retains its own gate.
 export const isAws = () => process.env.DEALOOP_RUNTIME === 'aws';
+/**
+ * Email-only sign-in (no password) for local testing: on only when the site's own origin is
+ * localhost, so a deployment can never offer it. Anyone at the machine can be anyone.
+ */
+export const emailSignInEnabled = () => isAws() && /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(agentOrigin());
 export function allowedEmail(email: string): boolean {
   if (!isAws()) return true;
+  if (emailSignInEnabled()) return true;
   return (process.env.DEALOOP_ALLOWED_EMAILS || '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean).includes(email.toLowerCase());
 }
 // Impact of the AWS default: externalRequest rewrites loopback requests to this

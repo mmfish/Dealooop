@@ -4,7 +4,7 @@
 // Beats 5a and 5b of the demo: runs the newest open campaign (or --campaign)
 // day by day on an accelerated clock, writing each simulated sign-up,
 // verification and price decision as it happens; open the campaign page to
-// watch it. --to 5 stops at the end of day 5, for Yi's private deal; --to end
+// watch it. --to 5 stops at the end of day 5, for Bean's private deal; --to end
 // runs to the deadline and settles. No model calls. Uses DEALOOP_DB_PATH or
 // data/dealoop.sqlite.
 

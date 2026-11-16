@@ -23,5 +23,5 @@ sqlite.raw.prepare('VACUUM INTO ?').run(backup);
 
 const deleted = await resetDemo(new CampaignStore(sqlite.asD1()));
 const removed = Object.entries(deleted).filter(([, n]) => n > 0).map(([t, n]) => `${t} ${n}`).join(', ');
-console.log(`Reset ${path}\nBackup: ${backup}\nDeleted: ${removed || 'nothing (already clean)'}\nClock: real time · creators seeded (Yi: 200 prior verified sign-ups)`);
+console.log(`Reset ${path}\nBackup: ${backup}\nDeleted: ${removed || 'nothing (already clean)'}\nClock: real time · simulated creators seeded; real people's agents set up their own profiles`);
 sqlite.close();

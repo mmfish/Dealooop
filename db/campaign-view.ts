@@ -30,8 +30,8 @@ export interface CreatorRow {
   followers: number;
   priorVerified: number;
   simulated: boolean;
-  /** 'asking': waiting for the founder's answer to their question; not joined yet. */
-  status: 'joined' | 'asking' | 'declined';
+  /** 'asking': waiting for the founder's answer to their question; 'negotiating': in a negotiation with the founder. Neither has joined yet. */
+  status: 'joined' | 'asking' | 'negotiating' | 'declined';
   /** Why they declined, or the note they joined with. */
   note: string;
   signUps: number;
@@ -155,7 +155,9 @@ export async function viewOf(store: CampaignStore, s: StoredCampaign, options: V
   const joined = Object.keys(s.links).map(u => row(u, 'joined'))
     .sort((a, b) => b.signUps - a.signUps || b.verified - a.verified || a.handle.localeCompare(b.handle));
   const askingRows = [...asking.keys()].filter(u => !s.links[u]).map(u => row(u, 'asking'));
-  const declinedRows = [...declined.keys()].filter(u => !s.links[u] && !asking.has(u)).map(u => row(u, 'declined'))
+  // Only that a negotiation is going on is public; its conversation and terms belong to the two parties.
+  const negotiatingRows = [...new Set((await store.negotiations(c.id, 'open')).map(x => x.creatorId))].filter(u => !s.links[u] && !asking.has(u)).map(u => row(u, 'negotiating'));
+  const declinedRows = [...declined.keys()].filter(u => !s.links[u] && !asking.has(u) && !negotiatingRows.some(r => r.userId === u)).map(u => row(u, 'declined'))
     .sort((a, b) => a.handle.localeCompare(b.handle));
 
   const paid = ledger.reduce((sum, e) => sum + e.amountCents, 0);
@@ -180,7 +182,7 @@ export async function viewOf(store: CampaignStore, s: StoredCampaign, options: V
     liveCacCents: results ? results.averageCents : (n.verified + n.pending ? Math.round(committedCents(book) / (n.verified + n.pending)) : null),
     priceHistory: book.priceHistory.map(p => ({at: p.at, fromCents: p.fromCents, toCents: p.toCents})),
     refusedProposals: book.rejections.length,
-    creators: [...joined, ...askingRows, ...declinedRows], joinedCount: joined.length, declinedCount: declinedRows.length, askingCount: askingRows.length,
+    creators: [...joined, ...askingRows, ...negotiatingRows, ...declinedRows], joinedCount: joined.length, declinedCount: declinedRows.length, askingCount: askingRows.length,
     results,
     feed: recent.map(e => ({
       sequence: e.sequence, kind: e.kind, tone: toneOf(e.kind), actor: e.actor,

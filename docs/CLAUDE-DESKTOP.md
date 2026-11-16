@@ -1,70 +1,63 @@
-# Connecting Claude Desktop (local)
+# How agents connect to Dealoop
 
-The founder's (and later the creator's) personal agent is Claude Desktop talking to this
-repository's local MCP server over stdio. Nothing needs a public address or OAuth, and the server
-makes no Anthropic API calls: the Claude in the window is the agent. The public deployment uses
-the OAuth-protected `/mcp` endpoint instead (SPEC §15).
+People never configure anything for Dealoop. They tell their own agent (Claude Code, Codex, or
+any agent that can call a website's API) something like "there's a site called Dealoop at
+http://localhost:3200; promote my app there" or "find campaigns I could promote". The agent
+finds out the rest from the site itself.
 
-## Setup
+## What the agent finds
 
-```bash
-nvm use
-npm run mcp:config -- --role founder --user summer --name "Summer"           # print the entry
-npm run mcp:config -- --role founder --user summer --name "Summer" --install # merge it into Claude Desktop's config, with a backup
-```
+| Where | What |
+|---|---|
+| `/llms.txt` | The agent guide: what Dealoop is, how to connect, the tools, the negotiation rules (`backend/dealoop-discovery.ts`) |
+| `/openapi.json` | The HTTP API: pairing, tool list, tool calls, MCP |
+| `/` (`Link` header) | Points to `/llms.txt`, `/openapi.json` and `/api/v1/tools` |
+| `/api/v1/capabilities` | A short machine-readable summary |
 
-Then quit Claude Desktop completely (⌘Q) and reopen it. In a new chat, the "+" menu →
-Connectors should list **dealoop-founder**.
+## Connecting (once per agent, approved by its owner)
 
-The server uses `data/dealoop.sqlite`, the same file as the local web server on port 3200, so the
-platform pages show what Claude does.
+1. The agent calls `POST /api/v1/agent-connections` and gets a private `device_code` and a link.
+2. It sends its owner the link. The owner signs in and approves at `/connect`.
+   - On localhost, sign-in is a name and an email, with no password (`emailSignInEnabled`). A
+     deployment uses its real sign-in instead.
+3. The agent polls `POST /api/v1/agent-token` and gets a bearer token, valid for 72 hours. The
+   owner can revoke it at `/connections`.
 
-## Identity
+The platform takes the owner from the token, never from the request. An account is identified
+by its email (`email:<address>`).
 
-On a local machine the person who started the process is the owner, so the role and user come
-from the config entry's `env` (`DEALOOP_ROLE`, `DEALOOP_USER_ID`, `DEALOOP_USER_NAME`). A
-founder sees only their own campaigns' reports. A creator window gets creator tools only.
+## Tools
 
-## Tools (founder)
+- `GET /api/v1/tools` lists every tool with its description and JSON Schema.
+- `POST /api/v1/tools/<name>` calls one tool for the token's owner.
+- The same tools are served as an MCP server at `POST /api/v1/mcp` (Streamable HTTP, stateless),
+  with the same token.
+
+Tools are defined once, in `mcp/campaign-tools.ts` and `mcp/deal-tools.ts`, and served by
+`backend/campaign-api.ts`. There are no fixed roles: anyone can post campaigns and is the founder
+on their own campaigns. With a creator profile, they can negotiate on others' campaigns.
 
 | Tool | What it does |
 |---|---|
-| `get_my_identity` | Role, user, the platform's date |
-| `post_campaign` | Claude passes the founder's messages verbatim and, for every value, the words it came from. The platform checks each value against those words (`judgeExtraction`); anything missing or not stated comes back as the question to ask. `preview: true` first, then `preview: false` after the founder agrees. Retrying returns the same campaign. |
-| `list_my_campaigns`, `list_open_campaigns` | Lists |
-| `list_creator_questions` | Questions creators asked that the brief does not answer; that creator has not joined yet |
-| `answer_creator_question` | `preview: true` with a wording, show it to the founder; then `preview: false` with the same wording, the founder's messages, and the exact words in which they approved. The creator then joins with that wording. |
-| `campaign_report` | Sign-ups, budget committed, price changes, top creators, deals, recent activity; after closing, what was paid and the average cost per sign-up |
+| `get_my_identity` | Who the token acts for, their creator profile, the platform's date |
+| `get_updates` | What changed since the agent's last look (the platform keeps the cursor) and `waiting_on_you` |
+| `list_open_campaigns` | Open campaigns with brief, prices and deadline |
+| `post_campaign`, `list_my_campaigns`, `campaign_report` | The owner's campaigns. `post_campaign` needs the app's name, `app_url` and `app_description`; the platform draws the campaign's cartoon picture from them (`backend/campaign-art.ts`, served at `/campaigns/<id>/art.svg`) |
+| `list_creator_questions`, `answer_creator_question` | Questions creators asked about the owner's campaigns |
+| `set_creator_profile`, `open_negotiation`, `join_campaign` | Acting as a creator |
+| `list_negotiations`, `read_negotiation`, `negotiate` | Negotiations on either side; `read_negotiation` includes the owner's private page |
 
-## Private deal tools (both roles; demo beat 6)
+Negotiation rules (`core/negotiation.ts`):
+- turns alternate, and the creator moves first;
+- a proposal is its author's agreement;
+- only the other side can accept;
+- no price above the campaign's maximum;
+- at most 30 moves.
 
-| Tool | Who | What it does |
-|---|---|---|
-| `open_private_deal` | creator | Opens a negotiation on a campaign and makes the first proposal. Needs the creator's track record (the platform checks it) and their lowest deal price in their own words (`limit_price_dollars` + `limit_price_quote` + `owner_messages`). |
-| `join_campaign` | creator | Joins a campaign at the public price (agreeing a deal joins too) |
-| `list_deal_negotiations`, `read_deal_negotiation` | both | Whose turn it is, the terms on the table, the conversation and the public facts |
-| `deal_move` | both | Propose, accept or reject. The founder passes their own limit (price and number of sign-ups) on their first move. |
+Only the two parties see the conversation.
 
-Each owner's limit is held only in their own server process and never written to the database.
-A move past it comes back as `needs_your_owner` with the question to ask; Claude calls again with
-the owner's reply, and only words that state the new number, or say yes to the terms just asked
-about, widen it. `core/negotiation.ts` judges every move: two rounds at most, the founder's last
-reply cannot counter, and a message that reveals the sender's limit is refused.
+## For development only
 
-Yi's window: `npm run mcp:config -- --role creator --user yi --name "Yi"`. One Claude Desktop
-loads every configured server into every chat, so Yi's server must not be installed next to
-Summer's in the same app (see below).
-
-## Troubleshooting
-
-- Logs: `tail -n 50 -f ~/Library/Logs/Claude/mcp*.log` (`mcp-server-dealoop-founder.log` has the
-  server's own stderr, including "Dealoop MCP ready").
-- Run the server by hand to see errors: `DEALOOP_ROLE=founder node --experimental-transform-types mcp/stdio.ts`
-  (it then waits for protocol input on stdin; Ctrl-C to stop).
-- After changing Node versions, rerun `--install`: the entry stores the absolute path to `node`.
-
-## Still to decide
-
-Two Claude windows for the demo (founder and top creator): one Claude Desktop loads every
-configured server into every chat, so the creator needs either a second machine against a shared
-database, or a second client (for example Claude Code with its own MCP entry) on this machine.
+`mcp/stdio.ts` runs the same tools as a local stdio MCP server for one user from the environment
+(`DEALOOP_USER_ID`, `DEALOOP_USER_NAME`). It is meant for tests and debugging, not for the people in
+the demo.

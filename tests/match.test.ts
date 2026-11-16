@@ -9,7 +9,7 @@ import {buildMatchPrompt, decideMatch} from '../agents/match-agent.ts';
 import {SQLiteDatabase} from '../runtime/sqlite.ts';
 import {CampaignStore, StoreError} from '../db/campaign-store.ts';
 import {campaignView} from '../db/campaign-view.ts';
-import {DEMO_CREATORS, YI} from '../sim/demo-creators.ts';
+import {DEMO_CREATORS, BEAN} from '../sim/demo-creators.ts';
 import {runMatching, type MatchRecording} from '../sim/match.ts';
 
 const DAY = 86_400_000;
@@ -81,7 +81,7 @@ test('matching writes every decision to the feed, and a rerun adds nothing', asy
   assert.equal(v.creators.find(c => c.handle === '@growthwithmaya')!.status, 'asking');
   assert.ok(v.creators.some(c => c.status === 'declined' && c.note === 'wrong audience.'));
   assert.ok(v.feed.some(e => e.kind === 'clarification.asked' && e.tone === 'question'));
-  assert.ok(v.creators.find(c => c.handle === YI.handle) === undefined, 'Yi decides for himself, in his own window');
+  assert.ok(v.creators.find(c => c.handle === BEAN.handle) === undefined, 'Bean decides for himself, in his own window');
 
   const again = await runMatching(store, 'c', {client, now: () => NOW + 2000});
   assert.equal(again.length, 0);

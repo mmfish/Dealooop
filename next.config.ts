@@ -13,7 +13,7 @@ const securityHeaders=[
   {key:'Content-Security-Policy',value:"frame-ancestors 'none'"},
 ];
 const headers=async()=>[
-  {source:'/',headers:[{key:'Link',value:'</llms.txt>; rel="describedby"; type="text/plain", </mcp>; rel="service"; type="application/json"'}]},
+  {source:'/',headers:[{key:'Link',value:'</llms.txt>; rel="describedby"; type="text/plain", </openapi.json>; rel="service-desc"; type="application/json", </api/v1/tools>; rel="service"; type="application/json"'}]},
   {source:'/:path*',headers:securityHeaders},
 ];
 

@@ -51,7 +51,7 @@ export const shortlistActions=sqliteTable('shortlist_actions',{id:text('id').pri
 // ---------------------------------------------------------------------------
 export const campaigns=sqliteTable('campaigns',{
  id:text('id').primaryKey(),ownerId:text('owner_id').notNull().references(()=>users.id),
- title:text('title').notNull(),brief:text('brief').notNull(),productUrl:text('product_url').notNull(),imageUrl:text('image_url').notNull().default(''),
+ title:text('title').notNull(),brief:text('brief').notNull(),productUrl:text('product_url').notNull(),productDescription:text('product_description').notNull().default(''),imageUrl:text('image_url').notNull().default(''),
  goalCount:integer('goal_count').notNull(),budgetCents:integer('budget_cents').notNull(),maxCacCents:integer('max_cac_cents').notNull(),
  startPriceCents:integer('start_price_cents').notNull(),stepCents:integer('step_cents').notNull(),currentPriceCents:integer('current_price_cents').notNull(),
  deadline:integer('deadline').notNull(),status:text('status').notNull().default('open'),nextSeq:integer('next_seq').notNull().default(1),
@@ -121,12 +121,14 @@ export const campaignQuestions=sqliteTable('campaign_questions',{
  status:text('status').notNull().default('pending'),answer:text('answer').notNull().default(''),
  createdAt:integer('created_at').notNull(),answeredAt:integer('answered_at'),
 },t=>[index('campaign_question_status').on(t.campaignId,t.status),check('campaign_question_state',sql`${t.status} IN ('pending','answered')`)]);
-// Private negotiations between a top creator and a campaign's founder (DEMO-FLOW beat 6).
-// state_json is core/negotiation.ts's Negotiation; neither side's private limit is stored.
+// Negotiations between a creator's agent and a campaign's founder's agent. state_json is
+// core/negotiation.ts's Negotiation, the whole conversation included; only the two parties
+// read it. creator_key and founder_key open each party's private page for it.
 export const campaignNegotiations=sqliteTable('campaign_negotiations',{
  id:text('id').primaryKey(),campaignId:text('campaign_id').notNull().references(()=>campaigns.id),
  creatorId:text('creator_id').notNull().references(()=>users.id),status:text('status').notNull().default('open'),
  stateJson:text('state_json').notNull(),turns:integer('turns').notNull().default(0),
+ creatorKey:text('creator_key').unique(),founderKey:text('founder_key').unique(),
  createdAt:integer('created_at').notNull(),updatedAt:integer('updated_at').notNull(),
 },t=>[index('campaign_negotiation_campaign').on(t.campaignId,t.status),check('campaign_negotiation_state',sql`${t.status} IN ('open','agreed','failed')`)]);
 // The platform's clock for the demo: how far ahead of real time the platform
@@ -135,3 +137,7 @@ export const campaignNegotiations=sqliteTable('campaign_negotiations',{
 export const platformClock=sqliteTable('platform_clock',{
  id:integer('id').primaryKey(),offsetMs:integer('offset_ms').notNull(),updatedAt:integer('updated_at').notNull(),
 },t=>[check('platform_clock_single',sql`${t.id}=1`)]);
+// How far each user's agent has read the platform's updates (mcp get_updates).
+export const agentCursors=sqliteTable('agent_cursors',{
+ userId:text('user_id').primaryKey().references(()=>users.id),sequence:integer('sequence').notNull(),updatedAt:integer('updated_at').notNull(),
+});

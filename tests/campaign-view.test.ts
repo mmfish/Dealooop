@@ -54,7 +54,7 @@ test('the view shows who joined, who declined and why, every price change and re
   assert.equal(first.note, 'my audience is early founders');
   assert.equal(first.simulated, true);
   assert.deepEqual(second.deal, {priceCents: 700, volumeCap: 3});
-  assert.equal(second.simulated, false, 'Yi is a person, not a simulated agent');
+  assert.equal(second.simulated, false, 'Bean is a person, not a simulated agent');
   assert.equal(third.status, 'declined');
   assert.equal(third.note, 'cooking channel, wrong audience');
   assert.equal(v.priceHistory.length, 1);
@@ -114,7 +114,7 @@ test('a campaign image is an http(s) URL or a site path, nothing else', async ()
   await assert.rejects(store.setImage('c', 'javascript:alert(1)'));
   const v = (await campaignView(store, 'c'))!;
   assert.equal(v.liveCacCents, Math.round(v.committedCents / 7), 'live CAC is committed over pending and verified sign-ups');
-  assert.equal(v.creators.find(c => c.handle === '@yi')!.earnedCents, 700, "Yi's one sign-up is paid on deal terms");
+  assert.equal(v.creators.find(c => c.handle === '@yi')!.earnedCents, 700, "Bean's one sign-up is paid on deal terms");
 });
 
 test('the campaign clock counts from the campaign start', () => {

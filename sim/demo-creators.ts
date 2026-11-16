@@ -1,4 +1,4 @@
-// The creators of the live demo (DEMO-FLOW beats 3–6). ALL SIMULATED except Yi.
+// The creators of the live demo (DEMO-FLOW beats 3–6). ALL SIMULATED except Bean.
 //
 // The platform stores only what is public (handle, platform, niche, audience,
 // followers, track record). Each creator's floor and their instructions to
@@ -72,13 +72,13 @@ export const DEMO_CREATORS: DemoCreator[] = ROWS.map(([handle, platform, niche, 
   userId: slug(handle), handle, platform, niche, audience, followers, priorVerified: 0, floorCents, note, fit: i < FIT_ROWS,
 }));
 
-/** Yi, the real top creator. His agent is his own Claude; only his public profile is seeded here. */
-export const YI = {userId: 'yi', handle: '@yi.builds', name: 'Yi', platform: 'YouTube', niche: 'AI tools and building with Claude', audience: 'developers and indie founders', followers: 120_000, priorVerified: 200};
+/** Bean, the demo's real creator. His agent is his own (Claude Code, Codex, ...); only his public profile is seeded here. */
+export const BEAN = {userId: 'bean', handle: '@beanbuilds', name: 'Bean', platform: 'YouTube', niche: 'AI tools and building with Claude', audience: 'developers and indie founders', followers: 120_000, priorVerified: 200};
 
-/** Writes the public profiles. Idempotent. */
-export async function seedCreators(store: CampaignStore, now: number) {
+/** Writes the simulated creators' public profiles, and Bean's demo profile unless `bean` is false. Idempotent. */
+export async function seedCreators(store: CampaignStore, now: number, bean = true) {
   for (const c of DEMO_CREATORS) {
     await store.upsertCreator({userId: c.userId, handle: c.handle, platform: c.platform, niche: c.niche, audience: c.audience, followers: c.followers, priorVerified: c.priorVerified, demo: true, now});
   }
-  await store.upsertCreator({...YI, demo: false, now});
+  if (bean) await store.upsertCreator({...BEAN, demo: false, now});
 }

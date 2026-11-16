@@ -1,18 +1,20 @@
 // Claude negotiators for the private deal channel (SPEC §9). One class, two
 // roles: the creator's agent and the founder's agent. Each sees the public
 // campaign facts, the conversation so far, and only its own owner's limits.
-// core/negotiation.ts judges every move; a refused move comes back as feedback.
+// The platform (core/negotiation.ts) applies the market rules; the agent's own
+// guardrail (agents/own-limits.ts) keeps it inside its owner's limits.
 
 import {z} from 'zod';
 import {creatorModel, founderModel, type Effort, type JsonClient} from './claude.ts';
-import type {CreatorMandate, FounderMandate, Move} from '../core/negotiation.ts';
+import type {Move} from '../core/negotiation.ts';
+import type {CreatorMandate, FounderMandate} from './own-limits.ts';
 import {RuleNegotiator, type NegotiationView, type Negotiator} from '../sim/negotiation-run.ts';
 
 const dollars = (c: number) => '$' + (c / 100).toFixed(2);
 
 const COMMON = `Dealoop pays creators per verified sign-up. Every creator is paid the campaign's public price, which only rises. A top creator may negotiate a private deal: a price floor per sign-up that covers a set number of their sign-ups. A deal never pays less than the public price, so a deal only matters if its price is above the public price.
 
-The negotiation has at most two rounds. The creator moves first. A proposal means you agree to those exact terms. The founder replies; if the founder counters, the creator gets one more move, and then the founder can only accept or reject.
+The creator moves first and the sides take turns. A proposal means you agree to those exact terms; the other side can accept them, counter, or reject. Close a deal in a few rounds rather than many.
 
 Your owner's limits are private. Never state them, hint at them, or say how close an offer is to them. Negotiate in good faith: be brief, concrete and polite, and give a reason for your position grounded in the public facts (audience size and fit, track record, the public price, time and budget left).`;
 
@@ -56,10 +58,10 @@ export function buildNegotiationPrompt(v: NegotiationView): string {
       ? v.history.map(t => `- ${t.side === v.side ? 'You' : t.side === 'creator' ? 'Creator' : 'Founder'} (${t.action}${t.terms ? ` ${dollars(t.terms.priceCents)} for ${t.terms.volumeCap} sign-ups` : ''}): ${t.message}`)
       : ['- (nothing yet; you open)']),
     '',
-    `Round ${v.round} of 2. Your options: ${[v.canPropose ? 'propose terms' : null, v.onTable && v.proposedBy !== v.side ? 'accept the terms on the table' : null, 'reject'].filter(Boolean).join(', ')}.`,
+    `Round ${v.round}. Your options: ${[v.canPropose ? 'propose terms' : null, v.onTable && v.proposedBy !== v.side ? 'accept the terms on the table' : null, 'reject'].filter(Boolean).join(', ')}.`,
     'Give price_cents and volume_cap for a proposal; for accept or reject, send 0 for both.',
   ];
-  if (v.feedback) lines.push('', `Your previous attempt was refused by the platform: ${v.feedback} Try again.`);
+  if (v.feedback) lines.push('', `Your previous attempt was refused: ${v.feedback} Try again.`);
   return lines.join('\n');
 }
 

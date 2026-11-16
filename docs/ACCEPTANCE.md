@@ -3,8 +3,8 @@
 Every invariant has at least one test. **Write these tests first, then the implementation.**
 
 Status as of 2026-11-11: every invariant and scenario here is tested. A, B and S1–S7 in
-`tests/core-*.test.ts`, `tests/db-campaigns.test.ts` and `tests/sim.test.ts`; C1–C5 and S8–S10 in
-`tests/negotiation-channel.test.ts` (the inherited `tests/negotiation.test.ts` covers the Muse
+`tests/core-*.test.ts`, `tests/db-campaigns.test.ts` and `tests/sim.test.ts`; C1–C4 and S8–S10 in
+`tests/negotiation-channel.test.ts`, C5 and the two-agent flow in `tests/deal-negotiation.test.ts` (the inherited `tests/negotiation.test.ts` covers the Muse
 offer engine).
 
 ## A. Ledger invariants (must hold after any sequence of operations)
@@ -32,13 +32,21 @@ offer engine).
 
 ## C. Negotiation invariants
 
+The platform is not a party to a negotiation: it applies the market rules below and keeps the
+record. Each owner's limits and instructions stay with their own agent; the platform never sees
+them, and never decides when an agent should look or consult its owner.
+
 | # | Invariant |
 |---|---|
-| C1 | At most 2 rounds |
-| C2 | The agreed price is within both sides' mandates |
-| C3 | Neither agent's output contains the other side's private constraints (minimum take-home / price flexibility) |
-| C4 | If no deal is reached, the creator falls back to the public price with no side effects |
-| C5 | Only creators with `verified_conversion_total ≥ 50` may open a negotiation |
+| C1 | Parties take turns, the creator first; every move carries a message, and the whole conversation is kept on the platform and readable only by the two parties |
+| C2 | A proposal is its author's agreement to those exact terms; only the other side can accept them; no terms above the campaign's maximum price per sign-up |
+| C3 | An agreement is recorded once, atomically, as a `Deal` |
+| C4 | If no deal is reached, nothing in the campaign changes; at most 30 moves, the last of which must accept or reject |
+| C5 | The public campaign page shows that a negotiation started and its outcome, never the conversation or the terms on the table |
+
+The simulated negotiators keep their owners' limits with an agent-side guardrail
+(`agents/own-limits.ts`): within the limit, and no message that reveals it. That is the agent's
+own behavior, tested separately, not a platform rule.
 
 ---
 

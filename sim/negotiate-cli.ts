@@ -1,5 +1,5 @@
 // npm run negotiate -- [--public 5] [--floor 6.5] [--ceiling 7.5] [--volume 50] [--rules]
-// npm run negotiate -- --campaign <id|latest> [--creator yi] [--floor 7] [--ceiling 7.5] [--volume 50] [--rules]
+// npm run negotiate -- --campaign <id|latest> [--creator bean] [--floor 7] [--ceiling 7.5] [--volume 50] [--rules]
 //
 // With --campaign it runs on a stored campaign (DEALOOP_DB_PATH or
 // data/dealoop.sqlite) through the same store path as the MCP tools, so the
@@ -13,7 +13,7 @@
 
 import {mkdirSync, writeFileSync} from 'node:fs';
 import {applyAgentProposal, createCampaign} from '../core/campaign.ts';
-import type {Mandates} from '../core/negotiation.ts';
+import type {Mandates} from '../agents/own-limits.ts';
 import {AnthropicJsonClient, creatorModel, estimateCostUsd, founderModel} from '../agents/claude.ts';
 import {ClaudeNegotiator} from '../agents/negotiator.ts';
 import {RuleNegotiator, runNegotiation, runStoredNegotiation} from './negotiation-run.ts';
@@ -21,7 +21,7 @@ import {DEALOOP_SEED_PRODUCT} from './policy.ts';
 import {join} from 'node:path';
 import {SQLiteDatabase} from '../runtime/sqlite.ts';
 import {CampaignStore} from '../db/campaign-store.ts';
-import {YI} from './demo-creators.ts';
+import {BEAN} from './demo-creators.ts';
 
 const args = process.argv.slice(2);
 const flag = (name: string, fallback: string) => {
@@ -47,8 +47,8 @@ async function stored() {
   const wanted = flag('campaign', 'latest');
   const id = wanted === 'latest' ? (await store.list({status: 'open', limit: 1}))[0]?.id : wanted;
   if (!id) { console.error('No open campaign.'); process.exit(1); }
-  const creatorId = flag('creator', YI.userId);
-  if (creatorId === YI.userId) await store.upsertCreator({...YI, demo: false, now: Date.now()});
+  const creatorId = flag('creator', BEAN.userId);
+  if (creatorId === BEAN.userId) await store.upsertCreator({...BEAN, demo: false, now: Date.now()});
   const s = await store.require(id);
   const offset = (await store.now()) - Date.now();
   const client = new AnthropicJsonClient();

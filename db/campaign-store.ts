@@ -15,7 +15,7 @@ import {
 } from '../core/campaign.ts';
 import {
   NegotiationError, openNegotiation as coreOpenNegotiation, settleNegotiation, step,
-  type CreatorMandate, type FounderMandate, type Mandates, type Negotiation, type Side, type StepResult,
+  type Negotiation, type Side, type StepResult,
 } from '../core/negotiation.ts';
 
 export interface CampaignMeta {
@@ -23,6 +23,8 @@ export interface CampaignMeta {
   title: string;
   brief: string;
   productUrl: string;
+  /** What the product is, in the founder agent's words (drives the campaign's cartoon art). */
+  productDescription: string;
   /** Cover image for the campaign page: an http(s) URL or a path on this site; empty for none. */
   imageUrl: string;
   demo: boolean;
@@ -93,12 +95,15 @@ export interface StoredNegotiation {
   negotiation: Negotiation;
   campaignId: string;
   creatorId: string;
+  /** Each party's key to its private page for this negotiation. */
+  keys: {creator: string; founder: string};
   createdAt: number;
   updatedAt: number;
 }
 
 const toNegotiation = (r: Record<string, unknown>): StoredNegotiation => ({
   negotiation: JSON.parse(String(r.state_json)) as Negotiation, campaignId: String(r.campaign_id), creatorId: String(r.creator_id),
+  keys: {creator: String(r.creator_key ?? ''), founder: String(r.founder_key ?? '')},
   createdAt: Number(r.created_at), updatedAt: Number(r.updated_at),
 });
 
@@ -116,6 +121,7 @@ export interface NewCampaign {
   title: string;
   brief: string;
   productUrl: string;
+  productDescription?: string;
   imageUrl?: string;
   goalCount: number;
   budgetCents: number;
@@ -215,7 +221,7 @@ export class CampaignStore {
     };
     return {
       book,
-      meta: {ownerId: str(row.owner_id), title: str(row.title), brief: str(row.brief), productUrl: str(row.product_url), imageUrl: str(row.image_url ?? ''), demo: num(row.demo) === 1, version: num(row.version)},
+      meta: {ownerId: str(row.owner_id), title: str(row.title), brief: str(row.brief), productUrl: str(row.product_url), productDescription: str(row.product_description ?? ''), imageUrl: str(row.image_url ?? ''), demo: num(row.demo) === 1, version: num(row.version)},
       links: Object.fromEntries(links.map(l => [str(l.creator_id), str(l.id)])),
     };
   }
@@ -331,9 +337,9 @@ export class CampaignStore {
     const title = input.title.trim().slice(0, 200) || 'Untitled campaign';
     await this.db.batch([
       this.db.prepare('INSERT INTO users(id,name,created_at) VALUES(?,?,?) ON CONFLICT(id) DO NOTHING').bind(input.ownerId, input.ownerName ?? input.ownerId, input.now),
-      this.db.prepare(`INSERT INTO campaigns(id,owner_id,title,brief,product_url,image_url,goal_count,budget_cents,max_cac_cents,start_price_cents,step_cents,current_price_cents,deadline,status,next_seq,version,demo,created_at)
-                       VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,0,?,?)`)
-        .bind(id, input.ownerId, title, input.brief.slice(0, 4000), input.productUrl.slice(0, 500), safeImageUrl(input.imageUrl ?? ''), c.goalCount, c.budgetCents, c.maxCacCents, c.startPriceCents, c.stepCents, c.currentPriceCents, c.deadline, c.status, book.nextSeq, input.demo ? 1 : 0, input.now),
+      this.db.prepare(`INSERT INTO campaigns(id,owner_id,title,brief,product_url,product_description,image_url,goal_count,budget_cents,max_cac_cents,start_price_cents,step_cents,current_price_cents,deadline,status,next_seq,version,demo,created_at)
+                       VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,0,?,?)`)
+        .bind(id, input.ownerId, title, input.brief.slice(0, 4000), input.productUrl.slice(0, 500), (input.productDescription ?? '').slice(0, 2000), safeImageUrl(input.imageUrl ?? ''), c.goalCount, c.budgetCents, c.maxCacCents, c.startPriceCents, c.stepCents, c.currentPriceCents, c.deadline, c.status, book.nextSeq, input.demo ? 1 : 0, input.now),
       this.eventStatement(id, {
         kind: 'campaign.posted', actor: 'founder-agent',
         summary: `${title}: ${c.goalCount} sign-ups wanted, budget ${dollars(c.budgetCents)}, up to ${dollars(c.maxCacCents)} each. Starting price ${dollars(c.startPriceCents)}.`,
@@ -395,17 +401,19 @@ export class CampaignStore {
   }
 
   // -------------------------------------------------------------------------
-  // Private negotiations (DEMO-FLOW beat 6). core/negotiation.ts judges every
-  // move. Each side's private limit is passed in by that side's own agent for
-  // the move it is making and is never stored, so the platform cannot show it
-  // to the other side. Only an agreement touches the campaign, as a Deal.
+  // Negotiations between a creator's agent and a founder's agent. The platform
+  // keeps the whole conversation and applies the market rules
+  // (core/negotiation.ts); each agent decides its own moves. Only the two
+  // parties read the conversation; the public feed says that a negotiation
+  // started, and its outcome.
   // -------------------------------------------------------------------------
 
   /** A creator opens a negotiation; the creator moves first. An open one for the same creator is returned as is. */
   async openNegotiation(campaignId: string, creatorId: string, now: number): Promise<StoredNegotiation> {
-    const {book} = await this.require(campaignId);
+    const {book, meta} = await this.require(campaignId);
+    if (meta.ownerId === creatorId) throw new StoreError('OWN_CAMPAIGN', 'You cannot negotiate on your own campaign.');
     const profile = await this.creator(creatorId);
-    if (!profile) throw new StoreError('NO_PROFILE', 'Only creators with a profile can negotiate.');
+    if (!profile) throw new StoreError('NO_PROFILE', 'Set up a creator profile before negotiating.');
     const open = (await this.negotiations(campaignId, 'open')).find(n => n.creatorId === creatorId);
     if (open) return open;
     let n: Negotiation;
@@ -415,17 +423,25 @@ export class CampaignStore {
       if (e instanceof NegotiationError) throw new StoreError(e.code, e.message);
       throw e;
     }
+    const keys = {creator: newId('nk'), founder: newId('nk')};
     await this.db.batch([
-      this.db.prepare('INSERT INTO campaign_negotiations(id,campaign_id,creator_id,status,state_json,turns,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)')
-        .bind(n.id, campaignId, creatorId, 'open', JSON.stringify(n), 0, now, now),
-      this.eventStatement(campaignId, {kind: 'deal.negotiation_opened', actor: profile.handle, summary: `${profile.handle} opened a private deal negotiation with the founder.`, data: {creatorId, negotiationId: n.id}}, now),
+      this.db.prepare('INSERT INTO campaign_negotiations(id,campaign_id,creator_id,status,state_json,turns,creator_key,founder_key,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?)')
+        .bind(n.id, campaignId, creatorId, 'open', JSON.stringify(n), 0, keys.creator, keys.founder, now, now),
+      this.eventStatement(campaignId, {kind: 'deal.negotiation_opened', actor: profile.handle, summary: `${profile.handle} started negotiating with the founder.`, data: {creatorId, negotiationId: n.id}}, now),
     ]);
-    return {negotiation: n, campaignId, creatorId, createdAt: now, updatedAt: now};
+    return {negotiation: n, campaignId, creatorId, keys, createdAt: now, updatedAt: now};
   }
 
   async negotiation(id: string): Promise<StoredNegotiation | null> {
     const r = await this.db.prepare('SELECT * FROM campaign_negotiations WHERE id=?').bind(id).first<Row>();
     return r ? toNegotiation(r) : null;
+  }
+
+  /** The negotiation a private page key opens, and whose key it is. */
+  async negotiationByKey(key: string): Promise<{stored: StoredNegotiation; side: Side} | null> {
+    const r = await this.db.prepare('SELECT * FROM campaign_negotiations WHERE creator_key=? OR founder_key=?').bind(key, key).first<Row>();
+    if (!r) return null;
+    return {stored: toNegotiation(r), side: str(r.creator_key) === key ? 'creator' : 'founder'};
   }
 
   async negotiations(campaignId: string, status?: Negotiation['status']): Promise<StoredNegotiation[]> {
@@ -436,45 +452,64 @@ export class CampaignStore {
   }
 
   /**
-   * One move by `side`, judged by the core against that side's own limit. A refused
-   * move changes nothing. An agreement records the Deal and the negotiation in one
-   * step: the negotiation row is claimed first, and released again if the core
-   * refuses the deal.
+   * One move by `side`. A move the market rules refuse changes nothing. An agreement
+   * records the Deal and the negotiation in one step: the negotiation row is claimed
+   * first, and released again if the core refuses the deal.
    */
-  async negotiationMove(id: string, side: Side, move: unknown, own: CreatorMandate | FounderMandate, now: number): Promise<StepResult> {
+  async negotiationMove(id: string, side: Side, move: unknown, now: number): Promise<StepResult> {
     const stored = await this.negotiation(id);
     if (!stored) throw new StoreError('NOT_FOUND', 'No such negotiation.');
     const before = stored.negotiation;
     const {book} = await this.require(stored.campaignId);
-    // The other side's limit is not known here and not needed: the core checks only the mover's own.
-    const mandates: Mandates = side === 'creator'
-      ? {creator: own as CreatorMandate, founder: {maxPriceCents: Number.MAX_SAFE_INTEGER, maxVolume: Number.MAX_SAFE_INTEGER}}
-      : {creator: {minPriceCents: 0}, founder: own as FounderMandate};
-    const r = step(book, before, side, move, mandates, now);
+    const r = step(book, before, side, move, now);
     if (!r.ok) return r;
     const n = r.negotiation;
     const claim = await this.db.prepare('UPDATE campaign_negotiations SET status=?, state_json=?, turns=?, updated_at=? WHERE id=? AND turns=?')
       .bind(n.status, JSON.stringify(n), n.history.length, now, id, before.history.length).run();
     if (!claim.meta.changes) throw new StoreError('CONFLICT', 'The negotiation changed in the meantime; read it again.');
     const handle = (await this.creator(stored.creatorId))?.handle ?? stored.creatorId;
+    const actor = side === 'creator' ? handle : 'founder';
     if (n.status === 'failed') {
-      await this.addEvent(stored.campaignId, {kind: 'deal.negotiation_ended', actor: side === 'creator' ? handle : 'founder', summary: `No private deal with ${handle}; they stay on the public price.`, data: {creatorId: stored.creatorId, negotiationId: id}}, now);
+      await this.addEvent(stored.campaignId, {kind: 'deal.negotiation_ended', actor, summary: `No deal between ${handle} and the founder.`, data: {creatorId: stored.creatorId, negotiationId: id}}, now);
     } else if (n.status === 'agreed' && n.agreed) {
       const terms = n.agreed;
       try {
         await this.mutate(stored.campaignId, s => ({
           book: settleNegotiation(s.book, n, now), result: undefined,
-          events: [{kind: 'deal.created', actor: side === 'creator' ? handle : 'founder', summary: `Private deal: at least ${dollars(terms.priceCents)} per sign-up for ${handle}'s next ${terms.volumeCap}. The public price stays ${dollars(s.book.campaign.currentPriceCents)}.`, data: {creatorId: stored.creatorId, negotiationId: id, priceCents: terms.priceCents, volumeCap: terms.volumeCap}}],
-        }), now, side === 'creator' ? handle : 'founder');
+          events: [{kind: 'deal.created', actor, summary: `Deal: ${dollars(terms.priceCents)} per sign-up for ${handle}'s next ${terms.volumeCap} sign-ups.`, data: {creatorId: stored.creatorId, negotiationId: id, priceCents: terms.priceCents, volumeCap: terms.volumeCap}}],
+        }), now, actor);
       } catch (e) {
         await this.db.prepare('UPDATE campaign_negotiations SET status=?, state_json=?, turns=?, updated_at=? WHERE id=?')
           .bind(before.status, JSON.stringify(before), before.history.length, now, id).run();
         throw e;
       }
       // A deal only pays through a tracked link, so the creator joins if they have not yet.
-      await this.join(stored.campaignId, stored.creatorId, now, 'private deal agreed').catch(() => undefined);
+      await this.join(stored.campaignId, stored.creatorId, now, 'deal agreed').catch(() => undefined);
     }
     return r;
+  }
+
+  // -------------------------------------------------------------------------
+  // Updates for agents: every public event after a sequence, across campaigns,
+  // and how far each user's agent has read. The agent chooses when to look.
+  // -------------------------------------------------------------------------
+
+  async eventsAfter(sequence: number, limit = 200): Promise<CampaignEvent[]> {
+    const rows = await this.all('SELECT * FROM campaign_events WHERE sequence>? ORDER BY sequence LIMIT ?', sequence, Math.min(Math.max(1, limit), 1000));
+    return rows.map(r => ({
+      sequence: num(r.sequence), campaignId: str(r.campaign_id), kind: str(r.kind), actor: str(r.actor),
+      summary: str(r.summary), data: JSON.parse(str(r.data_json)) as Record<string, unknown>, createdAt: num(r.created_at),
+    }));
+  }
+
+  async cursor(userId: string): Promise<number> {
+    const r = await this.db.prepare('SELECT sequence FROM agent_cursors WHERE user_id=?').bind(userId).first<{sequence: number}>();
+    return num(r?.sequence ?? 0);
+  }
+
+  async setCursor(userId: string, sequence: number, now: number) {
+    await this.db.prepare('INSERT INTO agent_cursors(user_id,sequence,updated_at) VALUES(?,?,?) ON CONFLICT(user_id) DO UPDATE SET sequence=MAX(agent_cursors.sequence,excluded.sequence), updated_at=excluded.updated_at')
+      .bind(userId, sequence, now).run();
   }
 
   /** Metadata only (no money), so it is not a Book mutation. */

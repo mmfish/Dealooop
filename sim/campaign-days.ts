@@ -5,7 +5,7 @@
 // deadline and settlement, writing every sign-up, verification and price
 // proposal through the store as it goes, so the campaign page fills up live and
 // both owners' agents see the same day (CampaignStore.now). Run it to day 5,
-// let Yi negotiate (beat 6), then run it to the end: the deal is in the stored
+// let Bean negotiate (beat 6), then run it to the end: the deal is in the stored
 // Book by then, so the core pays his sign-ups on deal terms with no special case.
 //
 // ALL SIGN-UPS ARE SIMULATED (CLAUDE.md rule 5). Each creator's audience
@@ -21,7 +21,7 @@ import {DAY_MS} from '../db/campaign-view.ts';
 import type {CampaignStore} from '../db/campaign-store.ts';
 import {createRng} from './market.ts';
 import {HeuristicEstimator} from './estimator.ts';
-import {DEMO_CREATORS, YI} from './demo-creators.ts';
+import {DEMO_CREATORS, BEAN} from './demo-creators.ts';
 
 const HOUR = 3_600_000;
 
@@ -68,8 +68,8 @@ const CAPACITY = [8, 20] as const;
 const FIT = new Map(DEMO_CREATORS.map(c => [c.userId, c]));
 
 export function audienceOf(userId: string, seed: number): Audience {
-  // Yi is the top creator the demo is about: a large, well-matched audience.
-  if (userId === YI.userId) return {perDay: 7, capacity: 70};
+  // Bean is the top creator the demo is about: a large, well-matched audience.
+  if (userId === BEAN.userId) return {perDay: 7, capacity: 70};
   const rng = createRng(hash(userId) ^ seed);
   const c = FIT.get(userId);
   if (c && !c.fit) return {perDay: 0.2, capacity: 3};

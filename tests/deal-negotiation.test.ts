@@ -1,7 +1,7 @@
-// A private deal negotiated on a stored campaign (DEMO-FLOW beat 6): through
-// the store with the rule-based negotiators, and over MCP between two real
-// stdio processes, Summer's window and Yi's window, on one database file.
-// No model calls.
+// Summer's agent and Bean's agent negotiate on the platform by themselves: two
+// real stdio MCP processes on one database file, using only platform tools.
+// The platform keeps the conversation, applies the market rules and tells each
+// agent what is waiting on it; it never sees an owner's limits. No model calls.
 
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
@@ -13,54 +13,11 @@ import {StdioClientTransport} from '@modelcontextprotocol/sdk/client/stdio.js';
 import {SQLiteDatabase} from '../runtime/sqlite.ts';
 import {CampaignStore} from '../db/campaign-store.ts';
 import {campaignView} from '../db/campaign-view.ts';
-import {YI, DEMO_CREATORS} from '../sim/demo-creators.ts';
+import {BEAN} from '../sim/demo-creators.ts';
 import {RuleNegotiator, runStoredNegotiation} from '../sim/negotiation-run.ts';
-import {approves} from '../mcp/deal-tools.ts';
 
 const root = join(import.meta.dirname, '..');
 const DAY = 86_400_000;
-
-async function seed(path: string) {
-  const sqlite = new SQLiteDatabase(path);
-  sqlite.migrate(join(root, 'drizzle'));
-  const store = new CampaignStore(sqlite.asD1());
-  const now = Date.now();
-  await store.ensureUser('summer', 'Summer', now);
-  await store.createCampaign({id: 'c', ownerId: 'summer', ownerName: 'Summer', title: 'Dealoop', brief: 'Promote Dealoop: 100 new sign-ups. Budget $1000, no more than $10 each. Two weeks.', productUrl: '', goalCount: 100, budgetCents: 100_000, maxCacCents: 1_000, deadline: now + 14 * DAY, now});
-  await store.upsertCreator({...YI, demo: false, now});
-  return {sqlite, store};
-}
-
-test('the old negotiators run on a stored campaign, and an agreement becomes a deal', async () => {
-  const {store} = await seed(':memory:');
-  const before = (await store.require('c')).book.campaign.currentPriceCents;
-  const rules = new RuleNegotiator();
-  const out = await runStoredNegotiation({
-    store, campaignId: 'c', creatorId: YI.userId, creatorAgent: rules, founderAgent: rules, now: Date.now,
-    mandates: {creator: {minPriceCents: 650}, founder: {maxPriceCents: 750, maxVolume: 50}},
-  });
-  assert.equal(out.negotiation.status, 'agreed');
-  const s = await store.require('c');
-  const deal = s.book.deals[YI.userId];
-  assert.ok(deal && deal.priceCents >= 650 && deal.priceCents <= 750 && deal.volumeCap <= 50);
-  assert.equal(s.book.campaign.currentPriceCents, before, 'the public price is unchanged');
-  assert.ok(s.links[YI.userId], 'Yi joins with the deal, so his sign-ups can be paid');
-  const v = (await campaignView(store, 'c'))!;
-  assert.deepEqual(v.feed.filter(e => e.kind.startsWith('deal.')).map(e => [e.kind, e.tone]), [['deal.negotiation_opened', 'deal'], ['deal.created', 'deal']]);
-  assert.ok(!v.feed.some(e => /6\.50|7\.50/.test(e.summary) && e.kind !== 'deal.created'), 'no private limit in the public feed');
-});
-
-test('only creators with a track record can negotiate', async () => {
-  const {store} = await seed(':memory:');
-  const nobody = DEMO_CREATORS[1];
-  await store.upsertCreator({userId: nobody.userId, handle: nobody.handle, platform: nobody.platform, niche: nobody.niche, audience: nobody.audience, followers: nobody.followers, priorVerified: 0, demo: true, now: Date.now()});
-  await assert.rejects(store.openNegotiation('c', nobody.userId, Date.now()), (e: unknown) => (e as {code?: string}).code === 'NOT_ELIGIBLE');
-});
-
-test('approval words: a yes counts, a no that contains a yes does not', () => {
-  for (const yes of ['Yes, take it', 'ok', '可以，接受', 'Sounds good']) assert.ok(approves(yes), yes);
-  for (const no of ['not ok', "don't accept", 'No, that is fine to refuse', '不可以']) assert.ok(!approves(no), no);
-});
 
 async function connect(env: Record<string, string>) {
   const transport = new StdioClientTransport({
@@ -75,60 +32,136 @@ async function connect(env: Record<string, string>) {
 }
 type Out = {structuredContent?: Record<string, unknown>; isError?: boolean};
 const call = async (c: Client, name: string, args: Record<string, unknown> = {}) => ((await c.callTool({name, arguments: args})) as Out).structuredContent!;
+type Waiting = {negotiation_id: string; last_move: {action: string; price_per_sign_up?: string; message: string} | null};
 
-test('beat 6 over MCP: Yi opens, Summer counters, Yi approves going below his floor', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'dealoop-deal-'));
-  const path = join(dir, 'db.sqlite');
-  (await seed(path)).sqlite.close();
-  const yi = await connect({DEALOOP_ROLE: 'creator', DEALOOP_USER_ID: 'yi', DEALOOP_USER_NAME: 'Yi', DEALOOP_DB_PATH: path});
-  const summer = await connect({DEALOOP_ROLE: 'founder', DEALOOP_USER_ID: 'summer', DEALOOP_USER_NAME: 'Summer', DEALOOP_DB_PATH: path});
+const party = (path: string, role: 'founder' | 'creator', id: string, name: string) =>
+  connect({DEALOOP_ROLE: role, DEALOOP_USER_ID: id, DEALOOP_USER_NAME: name, DEALOOP_DB_PATH: path});
+
+async function post(summer: Client) {
+  const today = String((await call(summer, 'get_my_identity')).platform_today);
+  return call(summer, 'post_campaign', {
+    app_url: 'https://dealoop.test', app_description: 'A marketplace where founders and creators make deals.', title: 'Dealoop', brief: 'Promote Dealoop: 100 new sign-ups, the more the better. Budget $1000, no more than $10 each.',
+    goal_sign_ups: 100, budget_dollars: 1000, max_price_per_sign_up_dollars: 10,
+    deadline_date: new Date(Date.parse(today) + 14 * DAY).toISOString().slice(0, 10),
+  });
+}
+
+test('Summer posts, Bean finds it by himself and bids, Summer finds the bid waiting and accepts', async () => {
+  const path = join(mkdtempSync(join(tmpdir(), 'dealoop-deal-')), 'db.sqlite');
+  const summer = await party(path, 'founder', 'summer', 'Summer');
+  const bean = await party(path, 'creator', 'bean', 'Bean');
   try {
-    const tools = (await yi.listTools()).tools.map(t => t.name).sort();
-    assert.deepEqual(tools, ['deal_move', 'get_my_identity', 'join_campaign', 'list_deal_negotiations', 'list_open_campaigns', 'open_private_deal', 'read_deal_negotiation']);
+    // The tools carry no owner instructions or limits.
+    for (const c of [summer, bean]) {
+      for (const t of (await c.listTools()).tools) {
+        const fields = Object.keys((t.inputSchema as {properties?: object}).properties ?? {});
+        assert.ok(!fields.some(f => /owner|limit|quote|approval|founder_messages|preview/.test(f)), `${t.name}: ${fields}`);
+      }
+    }
 
-    // Without Yi's own floor nothing opens.
-    const open = {campaign_id: 'c', price_per_sign_up_dollars: 8, sign_ups: 60, message: 'My audience of indie founders converts well; 200 verified sign-ups so far.'};
-    assert.equal((await call(yi, 'open_private_deal', open)).status, 'needs_your_owner');
-    // A floor the owner did not state is refused.
-    const yiSays = ['Open a private deal on Dealoop. Ask $8 for my next 60, never below $7.'];
-    assert.equal((await call(yi, 'open_private_deal', {...open, owner_messages: yiSays, limit_price_dollars: 6, limit_price_quote: 'never below $7'})).status, 'invalid');
-    // A message that reveals the floor is refused by the core.
-    const leaky = await call(yi, 'open_private_deal', {...open, message: 'I will not go below $7.00.', owner_messages: yiSays, limit_price_dollars: 7, limit_price_quote: 'never below $7'});
-    assert.equal(leaky.status, 'refused');
-    const opened = await call(yi, 'deal_move', {negotiation_id: (leaky.negotiation as {negotiation_id: string}).negotiation_id, action: 'propose', price_per_sign_up_dollars: 8, sign_ups: 60, message: open.message});
+    const posted = await post(summer);
+    assert.equal(posted.status, 'posted');
+    const campaignId = String(posted.campaign_id);
+    assert.equal((await post(summer)).status, 'already_posted');
+    assert.equal((await call(summer, 'post_campaign', {app_url: 'https://dealoop.test', app_description: 'A marketplace where founders and creators make deals.', title: 'x', brief: 'y', goal_sign_ups: 1, budget_dollars: 10, max_price_per_sign_up_dollars: 1, deadline_date: '2020-01-01'})).status, 'invalid', 'market rule: the deadline is in the future');
+
+    const first = await call(bean, 'get_updates');
+    assert.ok((first.updates as {kind: string; campaign_id: string}[]).some(u => u.kind === 'campaign.posted' && u.campaign_id === campaignId));
+    assert.deepEqual((await call(bean, 'get_updates')).updates, [], 'the platform remembers how far Bean\'s agent read');
+
+    const opened = await call(bean, 'open_negotiation', {campaign_id: campaignId, price_per_sign_up_dollars: 8, sign_ups: 60, message: 'My audience is indie founders; 200 verified sign-ups delivered so far. $8 for my next 60?'});
     assert.equal(opened.status, 'sent');
-    const id = (opened.negotiation as {negotiation_id: string}).negotiation_id;
+    const id = String((opened.negotiation as {negotiation_id: string}).negotiation_id);
+    assert.deepEqual((await call(bean, 'get_updates')).waiting_on_you, [], 'nothing waits on Bean once he has bid');
 
-    // Summer's window: the negotiation waits on her, and her agent needs her limit.
-    const list = await call(summer, 'list_deal_negotiations');
-    assert.equal((list.negotiations as {whose_turn: string}[])[0].whose_turn, 'yours');
-    const read = await call(summer, 'read_deal_negotiation', {negotiation_id: id});
-    assert.ok(!JSON.stringify(read).includes('7.00'), 'Summer never sees Yi\'s floor');
-    const counter = {negotiation_id: id, action: 'propose', price_per_sign_up_dollars: 6.5, sign_ups: 50, message: 'The public price is $3; I can offer $6.50 for 50.'};
-    assert.equal((await call(summer, 'deal_move', counter)).status, 'needs_your_owner');
-    const summerSays = ['Offer $6.50 for 50 sign-ups. Max $7.50, and no more than 50 sign-ups.'];
-    const sent = await call(summer, 'deal_move', {...counter, owner_messages: summerSays, limit_price_dollars: 7.5, limit_price_quote: 'Max $7.50', limit_sign_ups: 50, limit_sign_ups_quote: 'no more than 50 sign-ups'});
-    assert.equal(sent.status, 'sent');
+    const s1 = await call(summer, 'get_updates');
+    assert.ok((s1.updates as {kind: string}[]).some(u => u.kind === 'deal.negotiation_opened'));
+    const w = (s1.waiting_on_you as Waiting[])[0];
+    assert.equal(w.negotiation_id, id);
+    assert.deepEqual([w.last_move?.action, w.last_move?.price_per_sign_up], ['propose', '$8.00']);
+    assert.equal((await call(summer, 'negotiate', {negotiation_id: id, action: 'accept', message: 'Agreed.'})).status, 'deal_agreed');
+    assert.ok(((await call(bean, 'get_updates')).updates as {kind: string}[]).some(u => u.kind === 'deal.created'), 'Bean\'s agent learns of the deal on its next look');
+  } finally {
+    await summer.close();
+    await bean.close();
+  }
+});
 
-    // Yi's window: $6.50 is below his floor, so his agent must ask him.
-    const accept = {negotiation_id: id, action: 'accept', message: 'Thanks, that works.'};
-    const ask = await call(yi, 'deal_move', accept);
-    assert.equal(ask.status, 'needs_your_owner');
-    assert.match(String(ask.ask_your_owner), /\$6\.50 per sign-up for 50 sign-ups/);
-    assert.equal((await call(yi, 'deal_move', {...accept, owner_messages: [...yiSays, 'not ok'], limit_price_dollars: 6.5, limit_price_quote: 'not ok'})).status, 'invalid');
-    const done = await call(yi, 'deal_move', {...accept, owner_messages: [...yiSays, 'Yes, take it.'], limit_price_dollars: 6.5, limit_price_quote: 'Yes, take it'});
-    assert.equal(done.status, 'deal_agreed');
+test('a longer bargain: counter, a question, a counter, accept; a restarted agent picks up where it was', async () => {
+  const path = join(mkdtempSync(join(tmpdir(), 'dealoop-deal-')), 'db.sqlite');
+  const summer = await party(path, 'founder', 'summer', 'Summer');
+  let bean = await party(path, 'creator', 'bean', 'Bean');
+  try {
+    const campaignId = String((await post(summer)).campaign_id);
+    const id = String(((await call(bean, 'open_negotiation', {campaign_id: campaignId, price_per_sign_up_dollars: 8, sign_ups: 60, message: '$8 for my next 60?'})).negotiation as {negotiation_id: string}).negotiation_id);
+
+    assert.equal((await call(summer, 'negotiate', {negotiation_id: id, action: 'propose', price_per_sign_up_dollars: 6.5, sign_ups: 50, message: 'The public price is $3; I can do $6.50 for 50.'})).status, 'sent');
+    assert.equal((await call(summer, 'negotiate', {negotiation_id: id, action: 'message', message: 'Out of turn.'})).status, 'refused');
+
+    // Bean's agent restarts (a new session): what waits on it comes from the platform, not from memory.
+    await bean.close();
+    bean = await party(path, 'creator', 'bean', 'Bean');
+    const w = ((await call(bean, 'get_updates')).waiting_on_you as Waiting[])[0];
+    assert.deepEqual([w.negotiation_id, w.last_move?.price_per_sign_up], [id, '$6.50']);
+
+    assert.equal((await call(bean, 'negotiate', {negotiation_id: id, action: 'message', message: 'Before I answer: is the product free for my audience?'})).status, 'sent');
+    assert.equal((await call(summer, 'negotiate', {negotiation_id: id, action: 'message', message: 'Free to post; founders pay per verified sign-up.'})).status, 'sent');
+    assert.equal((await call(bean, 'negotiate', {negotiation_id: id, action: 'propose', price_per_sign_up_dollars: 7.25, sign_ups: 50, message: 'Then $7.25 for 50.'})).status, 'sent');
+    assert.equal((await call(summer, 'negotiate', {negotiation_id: id, action: 'accept', message: 'Agreed.'})).status, 'deal_agreed');
+
+    // The platform has the whole conversation; each party reads it and has a private page.
+    const read = await call(bean, 'read_negotiation', {negotiation_id: id});
+    const convo = read.conversation as {by: string; action: string}[];
+    assert.deepEqual(convo.map(t => [t.by, t.action]), [['you', 'propose'], ['founder', 'propose'], ['you', 'message'], ['founder', 'message'], ['you', 'propose'], ['founder', 'accept']]);
+    assert.match(String(read.private_page), /\/negotiations\/neg_\w+\?key=nk_\w+/);
 
     const check = new SQLiteDatabase(path);
-    const s = await new CampaignStore(check.asD1()).require('c');
-    assert.deepEqual(s.book.deals.yi && [s.book.deals.yi.priceCents, s.book.deals.yi.volumeCap], [650, 50]);
-    assert.equal(s.book.campaign.currentPriceCents, 300, 'the public price is unchanged');
-    const stateRow = check.asD1().prepare('SELECT state_json FROM campaign_negotiations').bind();
-    const row = await stateRow.first<{state_json: string}>();
-    assert.ok(!/700|750/.test(row!.state_json), 'neither private limit is stored');
+    const store = new CampaignStore(check.asD1());
+    const s = await store.require(campaignId);
+    assert.deepEqual([s.book.deals.bean.priceCents, s.book.deals.bean.volumeCap], [725, 50]);
+    assert.ok(s.links.bean, 'Bean joins with the deal, so his sign-ups can be paid');
+    const key = new URL(String(read.private_page)).searchParams.get('key')!;
+    assert.equal((await store.negotiationByKey(key))?.side, 'creator');
+    // The public page shows that they negotiated and the deal, never the conversation.
+    const v = (await campaignView(store, campaignId))!;
+    const publicText = JSON.stringify(v);
+    assert.ok(!publicText.includes('is the product free') && !publicText.includes('$6.50'), 'the conversation stays with the parties');
+    assert.ok(v.feed.some(e => e.kind === 'deal.created' && /\$7\.25/.test(e.summary)));
     check.close();
   } finally {
-    await yi.close();
     await summer.close();
+    await bean.close();
   }
+});
+
+test('a creator without a profile sets one, then negotiates with no track record', async () => {
+  const path = join(mkdtempSync(join(tmpdir(), 'dealoop-deal-')), 'db.sqlite');
+  const summer = await party(path, 'founder', 'summer', 'Summer');
+  const kim = await party(path, 'creator', 'kim', 'Kim');
+  try {
+    const campaignId = String((await post(summer)).campaign_id);
+    const bid = {campaign_id: campaignId, price_per_sign_up_dollars: 5, sign_ups: 20, message: '$5 for 20?'};
+    assert.equal((await call(kim, 'open_negotiation', bid)).error, 'NO_PROFILE');
+    assert.equal((await call(kim, 'set_creator_profile', {handle: '@makerkim', platform: 'X', niche: 'building in public', audience: 'indie makers', followers: 8200})).status, 'saved');
+    assert.equal((await call(kim, 'open_negotiation', bid)).status, 'sent');
+  } finally {
+    await summer.close();
+    await kim.close();
+  }
+});
+
+test('the simulated negotiators reach a deal on a stored campaign, each keeping its own limit', async () => {
+  const sqlite = new SQLiteDatabase(':memory:');
+  sqlite.migrate(join(root, 'drizzle'));
+  const store = new CampaignStore(sqlite.asD1());
+  const now = Date.now();
+  await store.createCampaign({id: 'c', ownerId: 'summer', ownerName: 'Summer', title: 'Dealoop', brief: 'Promote Dealoop.', productUrl: '', goalCount: 100, budgetCents: 100_000, maxCacCents: 1_000, deadline: now + 14 * DAY, now});
+  await store.upsertCreator({...BEAN, demo: false, now});
+  const rules = new RuleNegotiator();
+  const out = await runStoredNegotiation({store, campaignId: 'c', creatorId: BEAN.userId, creatorAgent: rules, founderAgent: rules, now: Date.now, mandates: {creator: {minPriceCents: 650}, founder: {maxPriceCents: 750, maxVolume: 50}}});
+  assert.equal(out.negotiation.status, 'agreed');
+  const deal = (await store.require('c')).book.deals[BEAN.userId];
+  assert.ok(deal.priceCents >= 650 && deal.priceCents <= 750 && deal.volumeCap <= 50);
+  const row = await store.db.prepare('SELECT state_json FROM campaign_negotiations').first<{state_json: string}>();
+  assert.ok(!/minPriceCents|maxPriceCents/.test(row!.state_json), 'no limit reaches the platform');
 });

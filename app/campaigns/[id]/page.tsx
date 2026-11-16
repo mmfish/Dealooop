@@ -29,7 +29,7 @@ export default async function CampaignPage({params, searchParams}: Props) {
   const v = await campaignView(new CampaignStore(env.DB!), id);
   if (!v) notFound();
   const open = v.status === 'open';
-  const showTabs = v.joinedCount > 0 || v.declinedCount > 0 || v.askingCount > 0;
+  const showTabs = v.creators.length > 0;
   const current = tab === 'activity' ? 'activity' : 'results';
   return <Shell>
     <Back />
@@ -99,7 +99,7 @@ function Results({v}: {v: CampaignView}) {
       <tbody>{v.creators.filter(c => c.status !== 'declined').map(c => <tr key={c.userId}>
         <td>
           <div className="creator-name">{c.handle} {c.simulated && <span className="connection-status">simulated</span>}</div>
-          <div className="creator-sub">{c.status === 'declined' ? `Declined${c.note ? `: ${c.note}` : ''}` : c.status === 'asking' ? `Asked the founder: “${c.note}” · waiting for an answer` : [c.platform, c.niche].filter(Boolean).join(' · ')}{c.deal ? ` · private deal, at least ${usd2(c.deal.priceCents)} for the next ${c.deal.volumeCap}` : ''}</div>
+          <div className="creator-sub">{c.status === 'declined' ? `Declined${c.note ? `: ${c.note}` : ''}` : c.status === 'asking' ? `Asked the founder: “${c.note}” · waiting for an answer` : c.status === 'negotiating' ? 'Negotiating with the founder' : [c.platform, c.niche].filter(Boolean).join(' · ')}{c.deal ? ` · private deal, at least ${usd2(c.deal.priceCents)} for the next ${c.deal.volumeCap}` : ''}</div>
         </td>
         <td>{c.status === 'joined' && <div className="share-bar" aria-hidden><span style={{width: `${(c.signUps / top) * 100}%`}} /></div>}</td>
         <td className="num">{c.status === 'joined' ? c.signUps : '—'}</td>

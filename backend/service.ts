@@ -6,11 +6,15 @@ import {requiredApiScope} from './oauth-scopes.ts';
 import {validateGrant} from './grants.ts';
 import {isAws,agentOrigin} from './deployment.ts';
 import {Negotiations,negotiate,negotiationAccess,publicOffer,scopes} from './negotiation.ts';
-import {humanFor} from './auth.ts';
+import {humanFor,cookieValue,requireSameOrigin} from './auth.ts';
+import {emailSignInEnabled} from './deployment.ts';
+import {resetDemo} from '../sim/demo-reset.ts';
 import {Repository} from '../db/repository.ts';
 import {ApiError,fail,hash,secret,now,publicPost,validatePost,imageDimensions,maxImageSide,maxImagePixels} from './contracts.ts';
 import type {Actor,Connection,Post} from './contracts.ts';
 import {seedDemo} from '../db/seed.ts';
+import {callTool,campaignMcp,ownerOf,toolList,ToolCallError} from './campaign-api.ts';
+import {CampaignStore} from '../db/campaign-store.ts';
 export type Bindings={DB:D1Database;BUCKET?:R2Bucket};
 export async function actorFor(req:Request,db:D1Database,humanOnly=false,resource?:string,checkScope=true):Promise<Actor>{
  const repo=new Repository(db);const bearer=req.headers.get('authorization');
@@ -63,7 +67,7 @@ export async function handleApi(req:Request,env:Bindings,resource?:string):Promi
   if(path==='/events/stream')return await openEventStream(req,db,authorize);
   const actor=await authorize();requireEvents(actor);return json({stream:eventStreamInfo(url.origin)});
  }
- if(req.method==='GET'&&path==='/capabilities'){await rateLimit(db,'public:'+req.headers.get('cf-connecting-ip'),600);return json({service:'DeaLoop',version:'1',operations:['search_posts','read_post','publish_post','upload_photo','read_own_activity','pair_agent','create_offer','revise_offer','send_message','confirm_terms','accept_offer','read_events','get_event_stream','read_shortlist','manage_shortlist','update_shortlist'],auth:'Browsing published posts is public. Account activity and writes require human sign-in or an owner-approved scoped bearer credential.',not_available:['payments','shipping_fulfillment','webhooks','scheduling'],agent_guide:'/agents',schema:'/openapi.json',event_stream:eventStreamInfo(url.origin),...(isAws()?{mcp:{endpoint:'/mcp',transport:'streamable-http',resource_metadata:'/.well-known/oauth-protected-resource/mcp'}}:{})});}
+ if(req.method==='GET'&&path==='/capabilities'){await rateLimit(db,'public:'+req.headers.get('cf-connecting-ip'),600);return json({service:'Dealoop',version:'2',summary:'A promotion marketplace for people\'s agents: founders post campaigns, creators negotiate a price per verified sign-up.',guide:'/llms.txt',schema:'/openapi.json',connect:{request:'POST /api/v1/agent-connections',token:'POST /api/v1/agent-token',owner_approves_at:'/connect'},tools:{list:'GET /api/v1/tools',call:'POST /api/v1/tools/{name}',mcp:'POST /api/v1/mcp'},not_available:['payments','real sign-up tracking','webhooks','push notifications']});}
  if(/^\/posts\/[^/]+\/shortlist(?:\/manage)?$/.test(path)){
   const post=path.split('/')[2],shortlists=new Shortlists(db);
   if(req.method==='GET'&&path.endsWith('/manage')){const a=await actorFor(req,db);const offset=Number(url.searchParams.get('offset')||0);if(!Number.isSafeInteger(offset)||offset<0||offset>10000)fail(400,'invalid_offset','Invalid offset.');return json(await shortlists.manage(post,a,offset));}
@@ -212,8 +216,30 @@ export async function handleApi(req:Request,env:Bindings,resource?:string):Promi
   try{if(typeof env.BUCKET?.delete==='function')await env.BUCKET.delete(id);}catch{console.warn('Photo object cleanup skipped',requestId);}
   return json({deleted:true});
  }
+ // Dealoop's campaign tools (backend/campaign-api.ts): listed publicly, called for the owner behind the token.
+ if(path==='/tools'&&req.method==='GET'){await rateLimit(db,'public:'+req.headers.get('cf-connecting-ip'),600);return json({tools:toolList(new CampaignStore(db),url.origin),auth:'Call a tool with Authorization: Bearer <token>. Get a token by pairing: POST /api/v1/agent-connections, your owner approves, then POST /api/v1/agent-token. See /llms.txt.'});}
+ if(/^\/tools\/[a-z_]+$/.test(path)&&req.method==='POST'){
+  const a=await actorFor(req,db);await rateLimit(db,'tools:'+a.ownerId,600);const b=await input(req);
+  try{const r=await callTool(db,await ownerOf(a,db),url.origin,path.split('/')[2],b);return json(r.result,r.ok?200:400);}
+  catch(e){if(e instanceof ToolCallError)return json({error:{code:e.code,message:e.message,...(e.details?{details:e.details}:{})}},e.status);throw e;}
+ }
+ if(path==='/mcp'){
+  if(req.method!=='POST')return new Response(null,{status:405,headers:{Allow:'POST','Cache-Control':'no-store'}});
+  if(!req.headers.get('authorization'))fail(401,'sign_in_required','Send Authorization: Bearer <token> from the pairing flow. See /llms.txt.');
+  const a=await actorFor(req,db);await rateLimit(db,'mcp:'+a.ownerId,600);
+  if(!req.headers.get('content-type')?.startsWith('application/json'))fail(415,'json_required','Send Content-Type: application/json.');
+  let parsed:unknown;try{parsed=JSON.parse(await req.text());}catch{fail(400,'invalid_json','Send a JSON-RPC object.');}
+  return await campaignMcp(req,db,await ownerOf(a,db),url.origin,parsed);
+ }
+ // Local testing only: wipe the demo back to a clean start (sim/demo-reset.ts) and sign this browser out.
+ if(req.method==='POST'&&path==='/demo/reset'){
+  if(!emailSignInEnabled())fail(404,'not_found','Endpoint not found.');
+  requireSameOrigin(req);await rateLimit(db,'reset:'+req.headers.get('cf-connecting-ip'),30);
+  const deleted=await resetDemo(new CampaignStore(db));
+  const r=json({reset:true,deleted});r.headers.set('Set-Cookie',cookieValue(req,'signed-out'));return r;
+ }
  if(req.method==='POST'&&path==='/demo'){const a=await actorFor(req,db,true);await rateLimit(db,'demo:'+a.ownerId,10);await seedDemo(db);return json({loaded:true});}
- return json({error:{code:'not_found',message:'Endpoint not found. Read /agents or /openapi.json.'}},404);
+ return json({error:{code:'not_found',message:'Endpoint not found. Read /llms.txt or /openapi.json.'}},404);
  }catch(e){if(e instanceof ApiError){const response=json({error:{code:e.code,message:e.message}},e.status);
   if(url.pathname===streamPath||path==='/events/stream-info'){
    if(e.status===401||e.status===403)response.headers.set('WWW-Authenticate',`Bearer resource_metadata="${url.origin}/.well-known/oauth-protected-resource/mcp", scope="events:read"`);

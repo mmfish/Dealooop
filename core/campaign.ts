@@ -338,6 +338,12 @@ export interface DealInput {
   volumeCap: number;
   /** Creator's lifetime verified conversions on the platform, supplied by the caller. */
   creatorVerifiedTotal: number;
+  /**
+   * True when the creator and the founder's agent agreed these terms in a negotiation
+   * (core/negotiation.ts). The founder's side then chose to deal with this creator, so the
+   * track-record threshold, which guards deals an agent creates on its own, does not apply.
+   */
+  negotiated?: boolean;
   now: number;
 }
 
@@ -349,7 +355,7 @@ function dealProblem(book: Book, input: DealInput): string | null {
   if (!isPositiveInt(input.priceCents)) return 'The deal price must be a positive integer number of cents.';
   if (input.priceCents > book.campaign.maxCacCents) return 'The deal price exceeds the maximum CAC.';
   if (!(Number.isSafeInteger(input.volumeCap) && input.volumeCap >= 1 && input.volumeCap <= MAX_DEAL_VOLUME)) return 'The deal volume must be a positive whole number.';
-  if (!(Number.isSafeInteger(input.creatorVerifiedTotal) && input.creatorVerifiedTotal >= DEAL_ELIGIBILITY_THRESHOLD)) {
+  if (!input.negotiated && !(Number.isSafeInteger(input.creatorVerifiedTotal) && input.creatorVerifiedTotal >= DEAL_ELIGIBILITY_THRESHOLD)) {
     return `Private deals need at least ${DEAL_ELIGIBILITY_THRESHOLD} verified conversions.`;
   }
   if (book.deals[input.creatorId]) return 'This creator already has a deal for this campaign.';

@@ -6,7 +6,7 @@ import firebaseConfig from '../config/firebase.json' with {type:'json'};
 import {createRemoteJWKSet, jwtVerify} from 'jose';
 import type {JWTVerifyGetKey} from 'jose';
 import {hash, secret, fail} from './contracts.ts';
-import {isAws,allowedEmail} from './deployment.ts';
+import {isAws,allowedEmail,emailSignInEnabled} from './deployment.ts';
 
 export const firebaseProject = 'thread-marketplace';
 export const sessionCookie = 'thread_session';
@@ -151,6 +151,21 @@ export async function authEndpoint(req:Request,db:D1Database,action:string):Prom
    // Expiring the cookie would silently re-authenticate an unmapped hosting
    // owner (or a different legacy account) on the next request.
    return json({signed_out:true},200,cookieValue(req,'signed-out'));
+  }
+  if(action==='email'){
+   // Local testing only (emailSignInEnabled): the email is the account; no password, no verification.
+   if(!emailSignInEnabled())return json({error:{message:'Not found.'}},404);
+   let b:{name?:unknown;email?:unknown};try{b=JSON.parse((await req.text()).slice(0,4000));}catch{return json({error:{message:'Invalid JSON.'}},400);}
+   const email=typeof b.email==='string'?b.email.trim().toLowerCase():'',name=typeof b.name==='string'?b.name.trim().slice(0,80):'';
+   if(!/^[^\s@]{1,64}@[^\s@]{1,190}\.[a-z]{2,}$/i.test(email))return json({error:{message:'Enter a valid email address.'}},400);
+   if(!name)return json({error:{message:'Enter your name.'}},400);
+   const ownerId='email:'+email,token=secret(),stamp=Date.now();
+   await db.batch([
+    db.prepare('INSERT INTO users(id,name,created_at) VALUES(?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name').bind(ownerId,name,stamp),
+    db.prepare('DELETE FROM auth_sessions WHERE expires_at<=?').bind(stamp),
+    db.prepare('INSERT INTO auth_sessions(token_hash,owner_id,email,provider,expires_at,created_at) VALUES(?,?,?,?,?,?)').bind(await hash(token),ownerId,email,'email',stamp+sessionSeconds*1000,stamp),
+   ]);
+   return json({account_id:ownerId},200,cookieValue(req,token));
   }
   if(action!=='session')return json({error:{message:'Not found.'}},404);
   if(!req.headers.get('content-type')?.startsWith('application/json'))return json({error:{message:'Send JSON.'}},415);
