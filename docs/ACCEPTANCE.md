@@ -38,11 +38,11 @@ them, and never decides when an agent should look or consult its owner.
 
 | # | Invariant |
 |---|---|
-| C1 | Parties take turns, the creator first; every move carries a message, and the whole conversation is kept on the platform and readable only by the two parties |
+| C1 | Parties take turns, the creator first; every move carries a message, and the whole conversation is kept on the platform |
 | C2 | A proposal is its author's agreement to those exact terms; only the other side can accept them; no terms above the campaign's maximum price per sign-up |
 | C3 | An agreement is recorded once, atomically, as a `Deal` |
 | C4 | If no deal is reached, nothing in the campaign changes; at most 30 moves, the last of which must accept or reject |
-| C5 | The public campaign page shows that a negotiation started and its outcome, never the conversation or the terms on the table |
+| C5 | Every turn of a negotiation (who, action, terms, message) appears in the campaign's Activity, in order |
 
 The simulated negotiators keep their owners' limits with an agent-side guardrail
 (`agents/own-limits.ts`): within the limit, and no message that reveals it. That is the agent's

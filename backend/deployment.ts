@@ -1,3 +1,4 @@
+import {isTestUser} from './test-users.ts';
 // The AWS build fixes this value in next.config.ts; Sites retains its own gate.
 export const isAws = () => process.env.DEALOOP_RUNTIME === 'aws';
 /**
@@ -7,7 +8,7 @@ export const isAws = () => process.env.DEALOOP_RUNTIME === 'aws';
 export const emailSignInEnabled = () => isAws() && /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(agentOrigin());
 export function allowedEmail(email: string): boolean {
   if (!isAws()) return true;
-  if (emailSignInEnabled()) return true;
+  if (emailSignInEnabled() || isTestUser(email)) return true;
   return (process.env.DEALOOP_ALLOWED_EMAILS || '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean).includes(email.toLowerCase());
 }
 // Impact of the AWS default: externalRequest rewrites loopback requests to this

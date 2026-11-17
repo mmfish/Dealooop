@@ -54,7 +54,7 @@ Negotiation rules (`core/negotiation.ts`):
 - no price above the campaign's maximum;
 - at most 30 moves.
 
-Only the two parties see the conversation.
+Every turn of the conversation appears in the campaign's Activity.
 
 ## For development only
 

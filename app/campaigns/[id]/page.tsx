@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 import type {Metadata} from 'next';
 import {notFound} from 'next/navigation';
-import {Ban, Calendar, Check, Handshake, Megaphone, MessageCircleQuestion, Receipt, ShieldCheck, Target, TrendingUp, UserCheck, UserPlus, UserX, Wallet, type LucideIcon} from 'lucide-react';
+import {Ban, Calendar, Check, Handshake, Megaphone, MessageCircleQuestion, MessageSquare, Receipt, ShieldCheck, Target, TrendingUp, UserCheck, UserPlus, UserX, Wallet, type LucideIcon} from 'lucide-react';
 import {env} from '@/runtime/bindings';
 import {CampaignStore} from '@/db/campaign-store';
 import {campaignClock, campaignDay, campaignView, DAY_MS, type CampaignView, type FeedTone} from '@/db/campaign-view';
@@ -113,7 +113,7 @@ function Results({v}: {v: CampaignView}) {
 
 const ICONS: Record<FeedTone, LucideIcon> = {
   posted: Megaphone, joined: UserPlus, declined: UserX, question: MessageCircleQuestion, approval: ShieldCheck,
-  signup: UserCheck, price: TrendingUp, deal: Handshake, refused: Ban, settled: Receipt, other: Check,
+  signup: UserCheck, price: TrendingUp, deal: Handshake, chat: MessageSquare, refused: Ban, settled: Receipt, other: Check,
 };
 
 function Activity({v}: {v: CampaignView}) {

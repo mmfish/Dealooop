@@ -231,6 +231,20 @@ export async function handleApi(req:Request,env:Bindings,resource?:string):Promi
   let parsed:unknown;try{parsed=JSON.parse(await req.text());}catch{fail(400,'invalid_json','Send a JSON-RPC object.');}
   return await campaignMcp(req,db,await ownerOf(a,db),url.origin,parsed);
  }
+ // A sign-up through a creator's tracked link (the /r/<token> page posts here). Public: a prospective
+ // user needs no account. The core records it against that creator and reserves budget; it is paid
+ // only once verified. In this demo, sign-ups are simulated (npm run signups) or typed in by hand.
+ if(req.method==='POST'&&/^\/links\/t_[a-f0-9]{32}\/signup$/.test(path)){
+  await rateLimit(db,'signup:'+req.headers.get('cf-connecting-ip'),3000);const b=await input(req);
+  const email=typeof b.email==='string'?b.email.trim().toLowerCase():'';
+  if(!/^[^\s@]{1,64}@[^\s@]{1,190}\.[a-z]{2,}$/i.test(email))fail(400,'invalid_email','Enter a valid email address.');
+  const store=new CampaignStore(db),token=path.split('/')[2];
+  const link=await store.linkByToken(token);if(!link)fail(404,'unknown_link','This link is not valid.');
+  try{
+   const c=await store.recordConversion(token,'email:'+email,await store.now());
+   return json({status:c.status==='unfunded'?'unfunded':'recorded',sign_up:c.seq,campaign_id:link!.campaignId},201);
+  }catch(e){const code=(e as {code?:string}).code;if(code==='DUPLICATE_USER')fail(409,'already_signed_up','This email has already signed up for this campaign.');if(code==='CAMPAIGN_CLOSED'||code==='PAST_DEADLINE')fail(409,'campaign_closed','This campaign has ended.');throw e;}
+ }
  // Local testing only: wipe the demo back to a clean start (sim/demo-reset.ts) and sign this browser out.
  if(req.method==='POST'&&path==='/demo/reset'){
   if(!emailSignInEnabled())fail(404,'not_found','Endpoint not found.');

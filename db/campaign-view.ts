@@ -9,9 +9,11 @@ import type {CampaignStore, CreatorProfile, StoredCampaign} from './campaign-sto
 
 export const DAY_MS = 86_400_000;
 
-export type FeedTone = 'posted' | 'joined' | 'declined' | 'question' | 'approval' | 'signup' | 'price' | 'deal' | 'refused' | 'settled' | 'other';
+export type FeedTone = 'posted' | 'joined' | 'declined' | 'question' | 'approval' | 'signup' | 'price' | 'deal' | 'chat' | 'refused' | 'settled' | 'other';
 
 export interface FeedItem {
+  /** A unique key: the event's sequence, or the negotiation turn's id. */
+  id: string;
   sequence: number;
   kind: string;
   tone: FeedTone;
@@ -91,7 +93,7 @@ export interface CampaignView {
 const TONES: Record<string, FeedTone> = {
   'campaign.posted': 'posted', 'creator.joined': 'joined', 'creator.declined': 'declined',
   'clarification.asked': 'question', 'clarification.answered': 'approval', 'approval.requested': 'approval', 'approval.given': 'approval',
-  'conversion.recorded': 'signup', 'conversion.unfunded': 'signup', 'conversion.rejected': 'signup',
+  'conversion.recorded': 'signup', 'conversion.verified': 'signup', 'conversion.unfunded': 'signup', 'conversion.rejected': 'signup',
   'price.raised': 'price', 'deal.created': 'deal', 'deal.negotiation_opened': 'deal', 'deal.negotiation_ended': 'declined', 'proposal.refused': 'refused', 'campaign.settled': 'settled',
 };
 export const toneOf = (kind: string): FeedTone => TONES[kind] ?? 'other';
@@ -184,12 +186,37 @@ export async function viewOf(store: CampaignStore, s: StoredCampaign, options: V
     refusedProposals: book.rejections.length,
     creators: [...joined, ...askingRows, ...negotiatingRows, ...declinedRows], joinedCount: joined.length, declinedCount: declinedRows.length, askingCount: askingRows.length,
     results,
-    feed: recent.map(e => ({
-      sequence: e.sequence, kind: e.kind, tone: toneOf(e.kind), actor: e.actor,
-      simulated: handles.get(e.actor)?.demo ?? profiles.get(e.actor)?.demo ?? false, summary: e.summary, at: e.createdAt,
-    })),
+    feed: [
+      // deal.turn events only wake the live page; the turns themselves come from the negotiations below.
+      ...recent.filter(e => e.kind !== 'deal.turn').map(e => ({
+        id: String(e.sequence), sequence: e.sequence, kind: e.kind, tone: toneOf(e.kind), actor: e.actor,
+        simulated: handles.get(e.actor)?.demo ?? profiles.get(e.actor)?.demo ?? false, summary: e.summary, at: e.createdAt,
+      })),
+      ...await negotiationTurns(store, c.id, owner?.name ?? meta.ownerId, profiles),
+    ].sort((a, b) => a.at - b.at || a.sequence - b.sequence),
     lastSequence: recent.at(-1)?.sequence ?? 0,
   };
+}
+
+const money = (c: number) => '$' + (c / 100).toFixed(2);
+
+/** Every turn of every negotiation on the campaign, as feed items: who said what, with the terms. */
+async function negotiationTurns(store: CampaignStore, campaignId: string, founderName: string, profiles: Map<string, CreatorProfile>): Promise<FeedItem[]> {
+  const out: FeedItem[] = [];
+  for (const s of await store.negotiations(campaignId)) {
+    const handle = profiles.get(s.creatorId)?.handle ?? s.creatorId;
+    for (const t of s.negotiation.history) {
+      const said = `“${t.message}”`;
+      const summary = t.action === 'propose' && t.terms ? `Proposed ${money(t.terms.priceCents)} per sign-up for ${t.terms.volumeCap} sign-ups: ${said}`
+        : t.action === 'accept' ? `Accepted the terms: ${said}` : t.action === 'reject' ? `Ended the negotiation: ${said}` : said;
+      out.push({
+        id: `${s.negotiation.id}-${t.seq}`, sequence: 0, kind: 'deal.turn', tone: t.action === 'message' ? 'chat' : 'deal',
+        actor: t.side === 'creator' ? `${handle} → ${founderName}` : `${founderName}'s agent → ${handle}`,
+        simulated: profiles.get(s.creatorId)?.demo ?? false, summary, at: t.at,
+      });
+    }
+  }
+  return out;
 }
 
 export interface CampaignListItem {

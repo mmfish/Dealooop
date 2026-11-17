@@ -122,10 +122,14 @@ test('a longer bargain: counter, a question, a counter, accept; a restarted agen
     assert.ok(s.links.bean, 'Bean joins with the deal, so his sign-ups can be paid');
     const key = new URL(String(read.private_page)).searchParams.get('key')!;
     assert.equal((await store.negotiationByKey(key))?.side, 'creator');
-    // The public page shows that they negotiated and the deal, never the conversation.
+    // The campaign's Activity shows every turn of the conversation, in order, with the terms.
     const v = (await campaignView(store, campaignId))!;
-    const publicText = JSON.stringify(v);
-    assert.ok(!publicText.includes('is the product free') && !publicText.includes('$6.50'), 'the conversation stays with the parties');
+    const turns = v.feed.filter(e => e.kind === 'deal.turn');
+    assert.equal(turns.length, 6);
+    assert.match(turns[1].summary, /^Proposed \$6\.50 per sign-up for 50 sign-ups: “The public price is \$3/);
+    assert.match(turns[2].summary, /is the product free/);
+    assert.equal(turns[2].tone, 'chat');
+    assert.match(turns[1].actor, /'s agent → @beanbuilds$/);
     assert.ok(v.feed.some(e => e.kind === 'deal.created' && /\$7\.25/.test(e.summary)));
     check.close();
   } finally {

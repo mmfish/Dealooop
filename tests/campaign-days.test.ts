@@ -69,8 +69,9 @@ test('days 1–5, a deal at the pause, then days 6–14 and settlement', async (
   const yi = v.creators.find(c => c.userId === BEAN.userId)!;
   assert.ok(yi.signUps > 0 && yi.deal, 'Bean joined with the deal and brought sign-ups');
   assert.ok(yi.paidCents! >= yi.verified * yi.deal!.priceCents, 'his verified sign-ups are paid at least the deal price');
-  assert.ok(v.feed.some(e => e.tone === 'refused'), 'at least one refused proposal is visible, for beat 8');
-  assert.ok(v.feed.some(e => e.tone === 'price'), 'and at least one raise');
+  const kinds = (await store.events('c', 0, 1000)).map(e => e.kind);
+  assert.ok(kinds.includes('proposal.refused'), 'at least one refused proposal is in the feed, for beat 8');
+  assert.ok(kinds.includes('price.raised'), 'and at least one raise');
   const times = (await store.events('c', 0, 1000)).map(e => e.createdAt);
   assert.deepEqual(times, [...times].sort((a, b) => a - b), 'the feed reads in time order');
 });
@@ -85,11 +86,11 @@ test('running in two parts gives the same days as running in one', async () => {
   assert.deepEqual(await total(a.store), await total(b.store));
 });
 
-test('a reset removes every campaign and reseeds the creators', async () => {
+test('a reset removes the real campaigns and rebuilds the samples', async () => {
   const {store} = await matched();
   await runDays(store, 'c', {to: 2});
   const removed = await resetDemo(store);
-  assert.ok(removed.campaigns === 1 && removed.conversions > 0);
-  assert.equal((await store.list()).length, 0);
+  assert.ok(removed.campaigns === 8 && removed.conversions > 0, 'the real campaign and the seven samples were cleared, then the samples rebuilt');
+  assert.deepEqual((await store.list()).filter(c => !c.id.startsWith('cmp_demo_')), [], 'only the sample campaigns remain');
   assert.equal((await store.creators()).length, DEMO_CREATORS.length, 'only the simulated creators are reseeded');
 });

@@ -98,7 +98,7 @@ test('after settlement the page and the report show the same paid totals', async
 });
 
 test('consecutive sign-ups fold into one row, newest first', () => {
-  const e = (sequence: number, kind: string, summary = kind) => ({sequence, kind, tone: 'other' as const, actor: 'platform', simulated: false, summary, at: NOW + sequence});
+  const e = (sequence: number, kind: string, summary = kind) => ({id: String(sequence), sequence, kind, tone: 'other' as const, actor: 'platform', simulated: false, summary, at: NOW + sequence});
   const rows = feedRows([e(1, 'campaign.posted'), e(2, 'conversion.recorded', 'Sign-up #1'), e(3, 'conversion.recorded'), e(4, 'conversion.recorded'), e(5, 'price.raised'), e(6, 'conversion.recorded', 'Sign-up #4')]);
   assert.deepEqual(rows.map(r => r.summary), ['Sign-up #4', 'price.raised', '3 sign-ups recorded.', 'campaign.posted']);
 });

@@ -7,9 +7,12 @@
 
 const C = {dark: '#124d3f', teal: '#27b993', mint: '#9be0ba', side: '#6cc59c', pale: '#e8f7e4', cream: '#f8f2dc', white: '#ffffff'};
 
-export type ArtKind = 'bowl' | 'book' | 'camera' | 'bubble' | 'laptop' | 'box';
+export type ArtKind = 'pet' | 'tennis' | 'music' | 'bowl' | 'book' | 'camera' | 'bubble' | 'laptop' | 'box';
 
 const KINDS: [ArtKind, RegExp][] = [
+  ['pet', /\b(pet|pets|dog|dogs|cat|cats|puppy|puppies|kitten\w*|vet|vets|veterinar\w*|grooming)\b/i],
+  ['tennis', /\b(tennis|racket|racquet|pickleball|padel|badminton|squash)\b/i],
+  ['music', /\b(music|musical|instrument\w*|guitar\w*|piano|violin|drum\w*|ukulele|song|songs|chord\w*)\b/i],
   ['bowl', /\b(food|meal|meals|recipe|recipes|cook|cooking|eat|eating|snack|kitchen|lunch|dinner|breakfast|nutrition|diet|restaurant|grocer\w*)\b/i],
   ['book', /\b(book|books|read|reading|learn|learning|study|course|courses|school|education|tutor\w*|language|quiz|homework|lesson\w*)\b/i],
   ['camera', /\b(photo|photos|camera|picture|pictures|video|videos|film|selfie|snap)\b/i],
@@ -36,6 +39,28 @@ function face(x: number, y: number, s: number, glasses = false) {
 
 function body(kind: ArtKind): string {
   switch (kind) {
+    case 'pet': return [
+      `<ellipse cx="250" cy="430" rx="96" ry="190" transform="rotate(18 250 430)" fill="${C.side}"/>`,
+      `<ellipse cx="774" cy="430" rx="96" ry="190" transform="rotate(-18 774 430)" fill="${C.side}"/>`,
+      `<rect x="232" y="250" width="560" height="560" rx="260" fill="${C.mint}"/>`,
+      `<ellipse cx="512" cy="660" rx="190" ry="130" fill="${C.pale}"/>`,
+      face(512, 470, 0.86),
+      `<ellipse cx="512" cy="548" rx="40" ry="26" fill="${C.dark}"/>`,
+    ].join('');
+    case 'tennis': return [
+      `<circle cx="512" cy="520" r="318" fill="${C.side}"/><circle cx="496" cy="508" r="318" fill="${C.mint}"/>`,
+      `<path d="M226 360 C360 420 360 620 232 690" fill="none" stroke="${C.pale}" stroke-width="30" stroke-linecap="round"/>`,
+      `<path d="M766 350 C632 420 632 620 760 700" fill="none" stroke="${C.pale}" stroke-width="30" stroke-linecap="round"/>`,
+      face(496, 470, 0.8),
+    ].join('');
+    case 'music': return [
+      `<rect x="474" y="96" width="76" height="330" rx="20" fill="${C.dark}"/><rect x="450" y="70" width="124" height="96" rx="30" fill="${C.dark}"/>`,
+      `<circle cx="512" cy="430" r="160" fill="${C.side}"/><circle cx="512" cy="640" r="230" fill="${C.side}"/>`,
+      `<circle cx="500" cy="424" r="156" fill="${C.mint}"/><circle cx="500" cy="634" r="226" fill="${C.mint}"/>`,
+      `<ellipse cx="500" cy="600" rx="180" ry="150" fill="${C.pale}"/>`,
+      `<rect x="420" y="770" width="160" height="34" rx="17" fill="${C.dark}"/>`,
+      face(500, 560, 0.72),
+    ].join('');
     case 'bowl': return [
       ...[400, 512, 624].map(x => `<path d="M${x} 330 q-26 -40 0 -80 q26 -40 0 -80" fill="none" stroke="${C.mint}" stroke-width="20" stroke-linecap="round"/>`),
       `<path d="M172 470 L852 470 A340 300 0 0 1 172 470 Z" fill="${C.mint}"/>`,

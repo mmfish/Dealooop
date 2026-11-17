@@ -18,6 +18,8 @@ const headers=async()=>[
 ];
 
 const nextConfig: NextConfig = process.env.DEALOOP_BUILD_TARGET === 'aws' ? {
+  // The dev server may be reached through a public tunnel (ngrok) for testing with remote agents.
+  allowedDevOrigins: ['*.ngrok-free.dev', '*.ngrok-free.app', '*.ngrok.app'],
   output: 'standalone',
   compress: false, // Caddy handles compression; keep event-stream chunks unbuffered.
   headers,

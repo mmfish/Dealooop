@@ -1,5 +1,7 @@
 // A clean start for the demo (the Reset button on localhost, and npm run demo:reset):
-// no campaigns, negotiations or deals; the platform clock on real time; nobody signed
+// every real campaign, negotiation and deal deleted, and the sample campaigns
+// (sim/demo-campaigns.ts) rebuilt fresh, so the homepage always shows them; the platform
+// clock on real time; nobody signed
 // in and no agent connected, so every agent connects again with its owner's approval;
 // no real creator profiles; the simulated creators' profiles seeded. User rows and the
 // old marketplace's tables are left alone. One transaction, so a running server sees
@@ -7,6 +9,7 @@
 
 import type {CampaignStore} from '../db/campaign-store.ts';
 import {seedCreators} from './demo-creators.ts';
+import {seedDemoCampaigns} from './demo-campaigns.ts';
 
 // Children before parents (foreign keys are enforced).
 const TABLES = [
@@ -28,5 +31,6 @@ export async function resetDemo(store: CampaignStore, now = Date.now()): Promise
   counts.creator_profiles = Number((await store.db.prepare('SELECT COUNT(*) AS n FROM creator_profiles WHERE demo=0').first<{n: number}>())?.n ?? 0);
   await store.db.batch([...TABLES.map(t => store.db.prepare(`DELETE FROM ${t}`)), ...ACCESS.map(sql => store.db.prepare(sql))]);
   await seedCreators(store, now, false);
+  await seedDemoCampaigns(store, now);
   return counts;
 }

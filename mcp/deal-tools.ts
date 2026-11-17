@@ -6,8 +6,8 @@
 // other side can accept, the campaign's maximum price). It does not know the
 // owners' limits or instructions and never decides when an agent should look
 // or ask its owner: get_updates is there whenever the agent wants it. Each
-// party can read the whole conversation and has a private page for it; the
-// public campaign page shows only that a negotiation started, and its outcome.
+// party has a page for the whole conversation, and every turn also appears in
+// the campaign's public Activity.
 
 import type {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js';
 import {z} from 'zod';
@@ -35,6 +35,12 @@ const termsOut = (t: Terms) => ({price_per_sign_up: dollars(t.priceCents), sign_
 
 /** A party's private page for a negotiation. */
 export const negotiationPage = (origin: string, s: StoredNegotiation, side: Side) => `${origin}/negotiations/${s.negotiation.id}?key=${side === 'creator' ? s.keys.creator : s.keys.founder}`;
+
+/** The creator's tracked link for the negotiation's campaign, once they have joined. */
+async function trackedLink(store: CampaignStore, s: StoredNegotiation, origin: string) {
+  const link = await store.link(s.campaignId, s.creatorId);
+  return link ? `${origin}/r/${link.token}` : null;
+}
 
 export async function negotiationView(store: CampaignStore, s: StoredNegotiation, side: Side, origin: string, now: number) {
   const n = s.negotiation;
@@ -64,6 +70,7 @@ export async function negotiationView(store: CampaignStore, s: StoredNegotiation
     },
     how_it_works: 'Agreed terms guarantee at least that price per verified sign-up for the creator\'s next N sign-ups; the creator is never paid less than the public price. A proposal is your agreement to exactly those terms, and the other side may accept them. A message without terms keeps the terms on the table as they are.',
     private_page: negotiationPage(origin, s, side),
+    ...(side === 'creator' && n.status === 'agreed' ? {tracked_link: await trackedLink(store, s, origin)} : {}),
   };
 }
 
@@ -220,6 +227,6 @@ A proposal is your owner's agreement to exactly those terms: the other side can 
     annotations: {readOnlyHint: false, destructiveHint: false, idempotentHint: true},
   }, async ({campaign_id}) => guard(async () => {
     const link = await store.join(campaign_id, identity.userId, await ctx.now());
-    return ok({status: 'joined', campaign_id, link_token: link.token, page: `${origin}/campaigns/${campaign_id}`, note: 'Sign-ups in this demo are simulated; the token identifies your owner\'s tracked link.'});
+    return ok({status: 'joined', campaign_id, tracked_link: `${origin}/r/${link.token}`, page: `${origin}/campaigns/${campaign_id}`, next: 'Give your owner the tracked link to share with their audience: every sign-up through it counts for them.'});
   }));
 }

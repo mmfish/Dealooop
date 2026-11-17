@@ -111,6 +111,36 @@ test('email sign-in exists only when the site runs on localhost', async () => {
   }
 });
 
+test('a creator\'s tracked link: people sign up through it, and the sign-ups count for that creator', async () => {
+  const founder = await connect('Founder agent', await signIn('Link Founder', 'link-founder@example.test'));
+  const creator = await connect('Creator agent', await signIn('Link Creator', 'link-creator@example.test'));
+  const today = String((await tool(founder, 'get_my_identity')).data.platform_today);
+  const campaignId = (await tool(founder, 'post_campaign', {title: 'StoryNest', app_url: 'https://storynest.test', app_description: 'Learn to read with short stories for kids.', brief: 'Promote StoryNest to parents.', goal_sign_ups: 50, budget_dollars: 500, max_price_per_sign_up_dollars: 8, deadline_date: new Date(Date.parse(today) + 7 * DAY).toISOString().slice(0, 10)})).data.campaign_id;
+  await tool(creator, 'set_creator_profile', {handle: '@linkcreator', platform: 'YouTube', niche: 'parenting', audience: 'parents', followers: 5000});
+  const joined = await tool(creator, 'join_campaign', {campaign_id: campaignId});
+  const url = String(joined.data.tracked_link);
+  assert.match(url, /^http:\/\/localhost:3200\/r\/t_[a-f0-9]{32}$/);
+  const token = url.split('/r/')[1];
+  const signup = (email: string, t = token) => api(`/links/${t}/signup`, 'POST', {email});
+  assert.equal((await signup('not-an-email')).status, 400);
+  assert.equal((await signup('a@example.test', 't_' + '0'.repeat(32))).status, 404);
+  const first = await signup('Parent.One@example.test');
+  assert.deepEqual([first.status, first.data.status], [201, 'recorded']);
+  assert.equal((await signup('parent.one@example.test')).status, 409, 'one sign-up per person');
+  await signup('parent.two@example.test');
+
+  const {CampaignStore} = await import('../db/campaign-store.ts');
+  const {campaignView} = await import('../db/campaign-view.ts');
+  const {feedRows} = await import('../app/campaigns/feed-rows.ts');
+  const store = new CampaignStore(db);
+  for (const c of (await store.require(campaignId)).book.conversions) await store.verifyConversion(campaignId, c.id, Date.now());
+  const v = (await campaignView(store, campaignId))!;
+  const row = v.creators.find(c => c.handle === '@linkcreator')!;
+  assert.deepEqual([row.signUps, row.verified], [2, 2], 'the live results count them for the creator');
+  assert.deepEqual(feedRows(v.feed).slice(0, 2).map(r => r.summary), ['2 sign-ups verified.', '2 sign-ups recorded.']);
+  assert.equal(v.imageUrl, `/campaigns/${campaignId}/art.svg`);
+});
+
 test('the Reset button wipes campaigns, sign-ins and agent connections, on localhost only', async () => {
   const token = await connect('Agent before reset', await signIn('Reset Tester', 'reset@example.test'));
   const today = String((await tool(token, 'get_my_identity')).data.platform_today);
@@ -120,12 +150,32 @@ test('the Reset button wipes campaigns, sign-ins and agent connections, on local
   assert.equal(r.status, 200);
   assert.match(r.headers.get('set-cookie') ?? '', /thread_session=signed-out/, 'this browser is signed out');
   assert.equal((await tool(token, 'get_my_identity')).status, 401, 'agents must connect again');
-  assert.equal((await db.prepare('SELECT COUNT(*) AS n FROM campaigns').first<{n: number}>())!.n, 0);
+  assert.equal((await db.prepare("SELECT COUNT(*) AS n FROM campaigns WHERE id NOT LIKE 'cmp_demo_%'").first<{n: number}>())!.n, 0, 'real campaigns are gone');
+  assert.equal((await db.prepare("SELECT COUNT(*) AS n FROM campaigns WHERE id LIKE 'cmp_demo_%'").first<{n: number}>())!.n, 7, 'the sample campaigns stay');
   assert.equal((await db.prepare('SELECT COUNT(*) AS n FROM auth_sessions').first<{n: number}>())!.n, 0);
   process.env.DEALOOP_ORIGIN = 'https://dealoop.example';
   try {
     assert.equal((await handleApi(new Request('https://dealoop.example/api/v1/demo/reset', {method: 'POST', headers: {'Content-Type': 'application/json', Origin: 'https://dealoop.example'}, body: '{}'}), {DB: db})).status, 404);
   } finally {
     process.env.DEALOOP_ORIGIN = ORIGIN;
+  }
+});
+
+test('internal test accounts sign in with their code, through the API only', async () => {
+  const before = process.env.DEALOOP_TEST_USERS;
+  const post = (body: unknown) => authEndpoint(new Request(ORIGIN + '/api/auth/code', {method: 'POST', headers: {'Content-Type': 'application/json', Origin: ORIGIN}, body: JSON.stringify(body)}), db, 'code');
+  try {
+    delete process.env.DEALOOP_TEST_USERS;
+    assert.equal((await post({email: 'tester@example.test', code: 'ABCDEFGH12'})).status, 404, 'off unless configured');
+    process.env.DEALOOP_TEST_USERS = 'tester@example.test:ABCDEFGH12:Tester, other@example.test:ZYXWVUTS98:Other';
+    assert.equal((await post({email: 'tester@example.test', code: 'WRONGCODE1'})).status, 401);
+    assert.equal((await post({email: 'stranger@example.test', code: 'ABCDEFGH12'})).status, 401, 'a code only works for its own account');
+    const ok = await post({email: 'Tester@Example.test', code: 'ABCDEFGH12'});
+    assert.equal(ok.status, 200);
+    const cookie = /thread_session=([a-f0-9]{64})/.exec(ok.headers.get('set-cookie') ?? '')![1];
+    const req = await api('/agent-connections', 'POST', {name: 'Test agent'});
+    assert.equal((await api('/connections/approve', 'POST', {user_code: req.data.user_code, can_write: true, can_negotiate: true, can_accept: true}, {cookie})).status, 200, 'the session works like any other');
+  } finally {
+    if (before === undefined) delete process.env.DEALOOP_TEST_USERS; else process.env.DEALOOP_TEST_USERS = before;
   }
 });

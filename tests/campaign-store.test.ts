@@ -91,7 +91,7 @@ test('the full lifecycle matches the core, and settlement pays once', async () =
   assert.equal((await store.load('c'))!.book.campaign.status, 'closed');
 
   const kinds = (await store.events('c')).map(e => e.kind);
-  assert.deepEqual(kinds.filter(k => !k.startsWith('conversion.recorded')), ['campaign.posted', 'creator.joined', 'creator.joined', 'creator.declined', 'price.raised', 'deal.created', 'conversion.rejected', 'campaign.settled']);
+  assert.deepEqual(kinds.filter(k => k !== 'conversion.recorded' && k !== 'conversion.verified'), ['campaign.posted', 'creator.joined', 'creator.joined', 'creator.declined', 'price.raised', 'deal.created', 'conversion.rejected', 'campaign.settled']);
   assert.equal(await store.creatorVerifiedTotal('big'), 200 + 3);
 });
 

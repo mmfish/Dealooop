@@ -7,10 +7,12 @@ import {createRemoteJWKSet, jwtVerify} from 'jose';
 import type {JWTVerifyGetKey} from 'jose';
 import {hash, secret, fail} from './contracts.ts';
 import {isAws,allowedEmail,emailSignInEnabled} from './deployment.ts';
+import {checkTestCode,testUsers} from './test-users.ts';
 
 export const firebaseProject = 'thread-marketplace';
 export const sessionCookie = 'thread_session';
 const sessionSeconds = 12 * 60 * 60;
+const FOREVER = 10 * 365 * 86_400_000;
 const googleKeys = createRemoteJWKSet(new URL('https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com'));
 const oauthKeys = createRemoteJWKSet(new URL('https://www.googleapis.com/oauth2/v3/certs'));
 export const googleClientId = '329895217851-45a2pq4s2cafod5ui7epudblsauaikih.apps.googleusercontent.com';
@@ -151,6 +153,24 @@ export async function authEndpoint(req:Request,db:D1Database,action:string):Prom
    // Expiring the cookie would silently re-authenticate an unmapped hosting
    // owner (or a different legacy account) on the next request.
    return json({signed_out:true},200,cookieValue(req,'signed-out'));
+  }
+  if(action==='code'){
+   // Test accounts (backend/test-users.ts): an email and its fixed code, on any deployment.
+   if(!testUsers().length)return json({error:{message:'Not found.'}},404);
+   const ip=req.headers.get('cf-connecting-ip');const bucket=Math.floor(Date.now()/900000);
+   const limited=await db.batch([db.prepare('INSERT INTO rate_limits(key,count,expires_at) VALUES(?,1,?) ON CONFLICT(key) DO UPDATE SET count=count+1').bind(await hash('test-code:'+ip+':'+bucket),(bucket+1)*900000),db.prepare('SELECT count FROM rate_limits WHERE key=?').bind(await hash('test-code:'+ip+':'+bucket))]);
+   if(Number((limited[1].results[0] as {count:number}).count)>20)return json({error:{message:'Too many attempts. Try again in 15 minutes.'}},429);
+   let b:{email?:unknown;code?:unknown};try{b=JSON.parse((await req.text()).slice(0,4000));}catch{return json({error:{message:'Invalid JSON.'}},400);}
+   const user=typeof b.email==='string'&&typeof b.code==='string'?checkTestCode(b.email,b.code):null;
+   if(!user)return json({error:{message:'That email and code do not match a test account.'}},401);
+   const ownerId='email:'+user.email,token=secret(),stamp=Date.now();
+   await db.batch([
+    db.prepare('INSERT INTO users(id,name,created_at) VALUES(?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name').bind(ownerId,user.name,stamp),
+    db.prepare('DELETE FROM auth_sessions WHERE expires_at<=?').bind(stamp),
+    db.prepare('INSERT INTO auth_sessions(token_hash,owner_id,email,provider,expires_at,created_at) VALUES(?,?,?,?,?,?)').bind(await hash(token),ownerId,user.email,'test-code',stamp+FOREVER,stamp),
+   ]);
+   // Internal test accounts stay signed in: the session (and its cookie) last ten years.
+   return json({account_id:ownerId},200,cookieValue(req,token).replace(/Max-Age=\d+/,'Max-Age='+FOREVER/1000));
   }
   if(action==='email'){
    // Local testing only (emailSignInEnabled): the email is the account; no password, no verification.

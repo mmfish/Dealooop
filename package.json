@@ -20,7 +20,9 @@
     "brief": "node --experimental-transform-types --no-warnings sim/brief-cli.ts",
     "match": "node --experimental-transform-types --no-warnings sim/match-cli.ts",
     "days": "node --experimental-transform-types --no-warnings sim/days-cli.ts",
+    "signups": "node --experimental-transform-types --no-warnings sim/signups-cli.ts",
     "demo:reset": "node --experimental-transform-types --no-warnings sim/reset-cli.ts",
+    "demo:seed": "node --experimental-transform-types --no-warnings sim/seed-cli.ts",
     "mcp:stdio": "node --experimental-transform-types --no-warnings mcp/stdio.ts",
     "mcp:config": "node --experimental-transform-types --no-warnings mcp/desktop-config.ts"
   },

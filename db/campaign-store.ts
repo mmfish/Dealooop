@@ -469,6 +469,8 @@ export class CampaignStore {
     if (!claim.meta.changes) throw new StoreError('CONFLICT', 'The negotiation changed in the meantime; read it again.');
     const handle = (await this.creator(stored.creatorId))?.handle ?? stored.creatorId;
     const actor = side === 'creator' ? handle : 'founder';
+    // Wakes the live campaign page; the Activity tab shows the turn itself from the negotiation.
+    await this.addEvent(stored.campaignId, {kind: 'deal.turn', actor, summary: `${side === 'creator' ? handle : 'The founder'} made a move in the negotiation.`, data: {creatorId: stored.creatorId, negotiationId: id, seq: n.history.length}}, now);
     if (n.status === 'failed') {
       await this.addEvent(stored.campaignId, {kind: 'deal.negotiation_ended', actor, summary: `No deal between ${handle} and the founder.`, data: {creatorId: stored.creatorId, negotiationId: id}}, now);
     } else if (n.status === 'agreed' && n.agreed) {
@@ -581,7 +583,19 @@ export class CampaignStore {
   }
 
   async verifyConversion(campaignId: string, conversionId: string, now: number) {
-    return this.mutate(campaignId, ({book}) => ({book: coreVerify(book, conversionId), result: undefined}), now);
+    return this.mutate(campaignId, ({book}) => {
+      const c = book.conversions.find(x => x.id === conversionId);
+      const next = coreVerify(book, conversionId);
+      // An event only when the status changes, so pages update as sign-ups are verified (a retry adds nothing).
+      const events = c && c.status === 'pending' ? [{kind: 'conversion.verified', actor: 'platform', summary: `Sign-up #${c.seq} verified.`, data: {conversionId, creatorId: c.creatorId, seq: c.seq}}] : [];
+      return {book: next, result: undefined, events};
+    }, now);
+  }
+
+  /** Every creator's tracked link for a campaign, with their handle. */
+  async links(campaignId: string): Promise<(CampaignLink & {handle: string})[]> {
+    const rows = await this.all('SELECT l.*, p.handle FROM campaign_links l LEFT JOIN creator_profiles p ON p.user_id=l.creator_id WHERE l.campaign_id=? ORDER BY l.created_at', campaignId);
+    return rows.map(r => ({...toLink(r), handle: r.handle == null ? str(r.creator_id) : str(r.handle)}));
   }
 
   async rejectConversion(campaignId: string, conversionId: string, now: number) {
